@@ -1,0 +1,105 @@
+doctype html
+html(lang="en")
+head 
+    meta(charset="UTF-8" )
+    title maya.js
+
+    style
+        :css
+            body {
+                margin: 0;
+                font-size: 16px;
+            }
+            header {
+                position:relative;
+                padding: 64px 0;
+                margin: 0 0 57px; /* 25px + 32px */
+
+                color: #fff;
+
+                background-color: #8250a8;
+            }
+            header::after {
+                content: "";
+
+                position: absolute;
+                top: 100%;
+                left: 0;
+
+                display: block;
+                width: 100%;
+                height: 50px;
+
+                background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='20'><polygon points='0,0 50,0 25,20' style='fill:#8250a8;' /></svg>") repeat-x;
+                background-position: left top;
+            }
+            .lead {
+                line-height: 32px;
+                text-align: center;
+            }
+            h1 {
+                margin: 0 0 32px;
+                padding: 16px;
+
+                line-height: 1;
+                font-size: 32px;
+                text-align: center;
+                
+                background-color: #553170;
+            }
+            h2 {
+                margin: 32px 0 0;
+            }
+            code {
+                padding: 2px 4px;
+
+                font-size: inherit;
+
+                color: #fff;
+                background-color: #553170;
+                border-radius: 4px;
+            }
+            main {
+                width: 80%;
+                margin: 0 auto;
+            }
+            footer {
+                margin: 32px 0 0;
+                padding: 8px 16px;
+                border-top: 1px solid rgba(151, 139, 161, 0.5);
+            
+                color: #aaa;
+                text-align: center;
+                font-size: 12px;
+            }
+            
+            .container {
+                width: 720px;
+                max-width: 100%;
+                margin: 0 auto;
+            }
+
+body
+    header
+        h1 Welcome to maya.js
+        p.container.lead.
+            You are looking <code>app/server/views/index.jade</code> now.<br>
+            This view rendered via <code>index</code> method on <code>app/server/controller/_root_.js</code>
+
+    main.container
+        h2 Q. How can I change this page?
+        p.
+            This page is wrote in <code>app/server/views/index.jade</code>.<br>
+            You change the that file, you can rewrite this page.
+        
+        h2 Q. Where is processing of this page may be written?
+        p.
+            This page is rendered via <code>`index` method</code> on <code>app/server/controller/_root_.js</code>.<br>
+            If you want to some processing for this page, let write code into that method.
+            
+    footer
+        p.container
+            em &quot;I'm a fights out type, earlier than think.&quot;
+            
+
+    - console.log(arguments);

@@ -1,0 +1,20 @@
+extends ./layout.jade
+
+block content
+    style.
+        .error {}
+        .error-title {
+            font-weight: bold;
+        }
+        .error-stack {
+            list-style: none;
+        }
+
+    .container
+        h1 500 // Internal Server Error
+
+        .error
+            .error-title= error.title
+            ul.error-stack
+                each stack in error.stack
+                    li.error-stack-item= stack
