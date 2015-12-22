@@ -40,5 +40,9 @@
     "stack-trace": "0.0.9",
     "url-parse": "^1.0.5",
     "yargs": "^3.31.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github-ragg:Ragg-/maya.js.git"
   }
 }
