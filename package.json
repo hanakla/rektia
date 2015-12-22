@@ -8,6 +8,9 @@
   "bin": {
       "maya" : "lib/cli/entry.js"
   },
+  "engines" : {
+    "node": ">=4.0.0"
+  },
   "scripts": {
     "prepubulish": "$(npm bin)/fly prePubulish",
     "test": "$(npm bin)/mocha --compilers coffee:coffee-script/register --reporter spec --require coffee-script --require ./specs/_.coffee --colors specs/*-spec.coffee"
