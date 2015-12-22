@@ -7,13 +7,16 @@ import App from "../app"
 
 module.exports = function (args) {
     var appDir = process.cwd();
+    const packageJsonPath = path.join(appDir, "package.json");
 
-    fs.writeFileSync(path.join(appDir, "package.json"), JSON.stringify({
-        main: "app.js",
-        dependencies : {
-            "maya" : `^${App.VERSION}`
-        }
-    }));
+    if (! fs.existsSync(packageJsonPath)) {
+        fs.writeFileSync(packageJsonPath, JSON.stringify({
+            main: "app.js",
+            dependencies : {
+                "maya" : `^${App.VERSION}`
+            }
+        }));
+    }
 
     var npmInitReuslt = spawnSync("npm", ["init"], {stdio : "inherit"});
 
