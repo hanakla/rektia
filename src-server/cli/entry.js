@@ -1,5 +1,5 @@
-var [, , command, ...args] = process.argv
-// console.log(command, args)
+#!/usr/bin/env node --harmony-destructuring
+var [, , command, ...args] = process.argv;
 
 switch (command) {
     case "init":

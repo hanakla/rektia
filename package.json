@@ -5,6 +5,9 @@
   "author": "Ragg-",
   "license": "MIT",
   "main": "lib/maya.js",
+  "bin": {
+      "maya" : "lib/cli/entry.js"
+  },
   "scripts": {
     "prepubulish": "$(npm bin)/fly prePubulish",
     "test": "$(npm bin)/mocha --compilers coffee:coffee-script/register --reporter spec --require coffee-script --require ./specs/_.coffee --colors specs/*-spec.coffee"
