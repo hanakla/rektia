@@ -40,6 +40,11 @@ switch (command) {
         require("./cqc")(args);
         break;
 
+    case "_dev":
+        process.chdir("./devapp");
+        require("./cqc")(args);
+        break;
+
     case "export":
         exitIfInvalidMayaProject();
         require("./export")(args);
@@ -63,7 +68,6 @@ switch (command) {
 
 Commands :
     cqc\t\t\tStart maya.js server.
-    example\t\tStart maya.js example app for development maya.js.
     export\t\tExport maya.js components for other libraries.
     generate(g)\t\tGenerate some components
     help\t\tShow this help
