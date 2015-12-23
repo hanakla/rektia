@@ -51,8 +51,8 @@ export default class ConfigLoader {
      * Get config value
      * @param {String} key
      */
-    get(key) {
-        return deep.get(this._configs, key);
+    get(key, defaults) {
+        return deep.get(this._configs, key, defaults);
     }
 
     /**
