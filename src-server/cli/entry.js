@@ -41,7 +41,7 @@ switch (command) {
         break;
 
     case "_dev":
-        process.chdir("./devapp");
+        process.chdir(path.join(__dirname, "../../devapp"));
         require("./cqc")(args);
         break;
 
