@@ -10,6 +10,6 @@ module.exports = function (args) {
         require(entry);
     }
     catch (e) {
-        console.error("\u001b[31m[maya.js] Failed to load entry point");
+        console.error("\u001b[31m[maya.js] Failed to load entry point\u001b[m");
     }
 }
