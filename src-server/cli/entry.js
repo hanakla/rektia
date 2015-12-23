@@ -51,6 +51,8 @@ switch (command) {
         require("./generate")(args);
         break;
 
+    case "h":
+    case "help":
     default:
         if (command !== undefined) {
             console.log(`\u001b[31mCommand not found : ${command}\u001b[m\n`);
@@ -64,6 +66,7 @@ Commands :
     example\t\tStart maya.js example app for development maya.js.
     export\t\tExport maya.js components for other libraries.
     generate(g)\t\tGenerate some components
+    help\t\tShow this help
 `
         );
         process.exit(0);
