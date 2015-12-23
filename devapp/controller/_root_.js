@@ -1,8 +1,12 @@
-var Controller = require('../../../').Controller;
+var Controller = require('../../').Controller;
 
 module.exports = Controller.create({
     index(req, res) {
         res.render("index");
+    },
+
+    socket(req, res) {
+        res.render("socket");
     },
 
     _private(req, res) {

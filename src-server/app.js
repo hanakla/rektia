@@ -3,6 +3,7 @@ import path from "path";
 
 import _ from "lodash";
 import express from "express";
+import socketio from "socket.io";
 import yargs from "yargs";
 
 import ModuleSwapper from "./module-swapper";
@@ -71,6 +72,18 @@ export default class App {
 
     /**
      * @private
+     * @property {socketio.Server} _socketio
+     */
+    // _socketio
+
+    /**
+     * @private
+     * @property {http.Server} _server
+     */
+    // _server
+
+    /**
+     * @private
      * @property {Swapper} swapper
      */
     // swapper;
@@ -131,13 +144,13 @@ export default class App {
     }
 
     _setExpressConfig() {
-        this._express.set("views", path.join(this.options.appRoot, "server/views/"));
+        this._express.set("views", path.join(this.options.appRoot, "views/"));
         this._express.set("view engine", this.config.get("maya.view.engine"));
     }
 
     _registerMiddlewares() {
-        const staticRoot = path.join(this.options.appRoot, "public/");
-        const controllersDir = path.join(this.options.appRoot, "server/controller/");
+        const staticRoot = path.join(this.options.appRoot, "static/");
+        const controllersDir = path.join(this.options.appRoot, "controller/");
 
         this._express.use(express.static(staticRoot));
 
@@ -155,7 +168,9 @@ export default class App {
 
     _listen(hostname, backlog, callback) {
         try {
-            this._express.listen(this.options.port, hostname, backlog, callback);
+            this._server = this._express.listen(this.options.port, hostname, backlog, callback);
+            this._socketio = socketio(this._server);
+
             console.log(`\u001b[36;1m<maya.js start on port ${this.options.port} in ${this.options.env} environment.>\u001b[m`);
         }
         catch (e) {
