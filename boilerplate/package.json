@@ -1,14 +1,12 @@
 {
-  "name": "mayajs-template",
+  "name": "",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "dependencies": {
+    "maya": "^0.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "maya.js",
-  "license": "MIT",
-  "dependencies": {
-    "express-session": "^1.12.1"
   }
 }
