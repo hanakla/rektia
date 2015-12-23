@@ -144,7 +144,7 @@ export default class App {
     }
 
     _setExpressConfig() {
-        this._express.set("views", path.join(this.options.appRoot, "server/views/"));
+        this._express.set("views", path.join(this.options.appRoot, "views/"));
         this._express.set("view engine", this.config.get("maya.view.engine"));
     }
 
