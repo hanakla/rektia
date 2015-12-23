@@ -1,4 +1,3 @@
-#!/usr/bin/env node --harmony-destructuring
 var [, , command, ...args] = process.argv;
 
 switch (command) {

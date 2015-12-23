@@ -1,5 +1,6 @@
 const paths = {
     serverDist : "./lib/",
+    binDist : "./lib/bin/",
     browserDistTmp : "./.tmp/",
     browserDist : "./",
 }
@@ -14,7 +15,7 @@ export function* prePubulish() {
 }
 
 export function* buildServer() {
-    yield this.start(["cleanServer", "babelServer", "jadeServer"]);
+    yield this.start(["cleanServer", "babelServer", "jadeServer", "copyBin"]);
 }
 
 export function* buildBrowser() {
@@ -90,4 +91,9 @@ export function* babelServer() {
         //     message : "Compile successful."
         // })
         .target(paths.serverDist);
+}
+
+export function* copyBin() {
+    yield this.source("src-server/bin/*")
+        .target(paths.binDist);
 }

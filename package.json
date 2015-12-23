@@ -6,7 +6,7 @@
   "license": "MIT",
   "main": "lib/maya.js",
   "bin": {
-    "maya": "lib/cli/entry.js"
+    "maya": "lib/bin/maya"
   },
   "engines": {
     "node": ">=4.0.0"
