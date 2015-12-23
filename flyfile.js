@@ -1,3 +1,4 @@
+const fs = require("fs");
 const paths = {
     serverDist : "./lib/",
     binDist : "./lib/bin/",
@@ -96,4 +97,8 @@ export function* babelServer() {
 export function* copyBin() {
     yield this.source("src-server/bin/*")
         .target(paths.binDist);
+
+    yield new Promise((resolve, reject) => {
+        fs.chmod(paths.binDist + "maya", "0744", (err) => err ? reject(err) : resolve());
+    });
 }
