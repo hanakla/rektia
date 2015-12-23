@@ -1,4 +1,4 @@
-var Controller = require('../../').Controller;
+var Controller = require('../../../').Controller;
 
 module.exports = Controller.create({
     index(req, res) {
