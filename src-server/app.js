@@ -3,6 +3,7 @@ import path from "path";
 
 import _ from "lodash";
 import express from "express";
+import socketio from "socket.io";
 import yargs from "yargs";
 
 import ModuleSwapper from "./module-swapper";
@@ -68,6 +69,18 @@ export default class App {
      * @property {express.Application} _express
      */
     // _express;
+
+    /**
+     * @private
+     * @property {socketio.Server} _socketio
+     */
+    // _socketio
+
+    /**
+     * @private
+     * @property {http.Server} _server
+     */
+    // _server
 
     /**
      * @private
@@ -155,7 +168,9 @@ export default class App {
 
     _listen(hostname, backlog, callback) {
         try {
-            this._express.listen(this.options.port, hostname, backlog, callback);
+            this._server = this._express.listen(this.options.port, hostname, backlog, callback);
+            this._socketio = socketio(this._server);
+
             console.log(`\u001b[36;1m<maya.js start on port ${this.options.port} in ${this.options.env} environment.>\u001b[m`);
         }
         catch (e) {

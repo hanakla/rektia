@@ -5,6 +5,10 @@ module.exports = Controller.create({
         res.render("index");
     },
 
+    socket(req, res) {
+        res.render("socket");
+    },
+
     _private(req, res) {
         res
             .type("text/html; charset=UTF-8")
