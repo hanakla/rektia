@@ -104,14 +104,7 @@ export default class Router {
             // `relativePath` is relate path from `app/controller/`
 
             var controller = this.swapper.require(fullPath, require);
-            var methods = Object.keys(Object.getPrototypeOf(controller));
-            var validMethods = methods.filter((methodName) => {
-                // ignore private methods
-                if (methodName[0] === "_") { return false; }
-
-                // ignore properties
-                return _.isFunction(controller[methodName]);
-            });
+            var validMethods = this._lookupValidHandler(controller);
 
             return [fullPath, relativePath, validMethods];
         })
@@ -162,6 +155,32 @@ export default class Router {
         }, [])
 
         return flattenRoutes;
+    }
+
+    /**
+     * @private
+     * @method _lookupValidHandler
+     * @param {Controller} controller method lookup target
+     * @return {Array<string>} lookuped valid method names
+     */
+    _lookupValidHandler(controller) {
+        // Lookup only first level prototype's public methods.
+
+        // It's for security reason.
+        // if accept access to instance method / property or deep prototype methods.
+        // it could allow calls some methods to themalicious attacker.
+        // if callled method is destructive (likes Controller._dispose) or property.
+        // There is a possibility that the cause to services stopping or mismatch datas.
+        const proto = Object.getPrototypeOf(controller);
+        const protoMethodAndProps = Object.keys(proto);
+
+        return protoMethodAndProps.filter((methodName) => {
+            // ignore private methods
+            if (methodName[0] === "_") { return false; }
+
+            // ignore properties
+            return _.isFunction(proto[methodName]);
+        });
     }
 
     _prefetchRoutes(routes) {
