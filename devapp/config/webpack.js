@@ -26,6 +26,7 @@ module.exports = {
 
         alias : {
             "views" : __dirname + "/../views/",
+            "socket.io" : "socket.io-client"
         },
 
         module : {
