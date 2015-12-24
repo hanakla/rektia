@@ -161,7 +161,7 @@ export default class App {
     }
 
     _registerMiddlewares() {
-        const staticRoot = path.join(this.options.appRoot, "static/");
+        const staticRoot = path.join(this.options.appRoot, ".tmp/");
         const controllersDir = path.join(this.options.appRoot, "controller/");
 
         this._express.use(express.static(staticRoot));
