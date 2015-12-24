@@ -127,8 +127,10 @@ export default class App {
         global.maya = this;
     }
 
-    start() {
+    async start() {
         this.config.startWatch();
+
+        await this._buildScripts();
 
         this._setExpressConfig();
 
@@ -136,6 +138,16 @@ export default class App {
         this._registerMiddlewares();
 
         this._listen();
+    }
+
+    async _buildScripts() {
+        console.log("\u001b[36;1m[App Builder]\u001b[m\u001b[36m Run build.js...\u001b[m");
+
+        const buildScript = path.join(this.options.appRoot, "build.js");
+        const builder = this.swapper.require(buildScript, require);
+        const returns = builder(this.options.env);
+
+        await returns.then ? returns : Promise.reoslve();
     }
 
     _exportClasses() {
