@@ -32,4 +32,10 @@ export default class RestController extends Controller {
     patch_index(req, res) {
 
     }
+
+    _dispose() {
+        if (this.disposed) {
+            return;
+        }
+    }
 };

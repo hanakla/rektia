@@ -47,7 +47,7 @@ export default class ModuleSwapper {
 
         if (! this.isSwappableModuleCache(cache)) { return; }
 
-        cache.exports.dispose();
+        cache.exports._dispose();
         delete require.cache[fullPath];
         require(fullPath);
 
