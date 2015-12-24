@@ -4,6 +4,9 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "fly": "^0.8.4",
+    "fly-stylus": "^0.5.0",
+    "fly-webpack": "^1.1.0",
     "maya": "^0.0.0"
   },
   "scripts": {
