@@ -45,6 +45,13 @@ export async function buildScripts() {
 
     await this.source(source.scripts)
         .webpack(require("./config/webpack.js"));
+
+    // if you not want to use webpack.
+    // comment out or remove above `await this.source` to next lines `);` code.
+    // and rescission comment out bellow code.
+
+    // await this.source(`${source.scripts}*/*`)
+    //     .target(dest.scripts);
 }
 
 export async function clearStyleDest() {
