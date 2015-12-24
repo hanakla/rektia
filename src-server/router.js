@@ -9,6 +9,7 @@ import Metacarattere  from "metacarattere";
 import _Router from "router";
 
 import * as PrettyLog from "./utils/pretty-log"
+import Controller from "./controller";
 import ModuleSwapper from "./module-swapper";
 import RouteTree from "./route-tree"
 
@@ -104,14 +105,9 @@ export default class Router {
             // `relativePath` is relate path from `app/controller/`
 
             var controller = this.swapper.require(fullPath, require);
-            var methods = Object.keys(Object.getPrototypeOf(controller));
-            var validMethods = methods.filter((methodName) => {
-                // ignore private methods
-                if (methodName[0] === "_") { return false; }
+            this._isValidController(controller);
 
-                // ignore properties
-                return _.isFunction(controller[methodName]);
-            });
+            var validMethods = this._lookupValidHandler(controller);
 
             return [fullPath, relativePath, validMethods];
         })
@@ -164,6 +160,32 @@ export default class Router {
         return flattenRoutes;
     }
 
+    /**
+     * @private
+     * @method _lookupValidHandler
+     * @param {Controller} controller method lookup target
+     * @return {Array<string>} lookuped valid method names
+     */
+    _lookupValidHandler(controller) {
+        // Lookup only first level prototype's public methods.
+
+        // It's for security reason.
+        // if accept access to instance method / property or deep prototype methods.
+        // it could allow calls some methods to themalicious attacker.
+        // if callled method is destructive (likes Controller._dispose) or property.
+        // There is a possibility that the cause to services stopping or mismatch datas.
+        const proto = Object.getPrototypeOf(controller);
+        const protoMethodAndProps = Object.keys(proto);
+
+        return protoMethodAndProps.filter((methodName) => {
+            // ignore private methods
+            if (methodName[0] === "_") { return false; }
+
+            // ignore properties
+            return _.isFunction(proto[methodName]);
+        });
+    }
+
     _prefetchRoutes(routes) {
         var routeTree = {};
         var controllerDir = this.options.controllerDir;
@@ -193,6 +215,10 @@ export default class Router {
             catch (e) {
                 throw new Error(`Routed controller doesn't exists. (url: ${url}, name: ${controllerName})`);
             }
+
+            // Check controller validness.
+            const controller = this.swapper.require(fullControllerPath);
+            this._isValidController(controller);
 
             var urlFragments = url.split("/")
                 .map((fragment) => `/${fragment}`)
@@ -239,6 +265,14 @@ export default class Router {
         }
     }
 
+    _isValidController(controller) {
+        // Check controller extending correctness
+        const proto = Object.getPrototypeOf(controller);
+
+        if (! proto instanceof Controller) {
+            throw new Error(`Controller must be create via Controller.create. (for ${fullControllerPath})`);
+        }
+    }
     /**
      * @param {Object} target
      * @param {String} target.controller
@@ -249,20 +283,19 @@ export default class Router {
      * @param {http.ServerResponse} res
      */
     async _launchController(target, req, res) {
-        var controller;
+        const controller = this.swapper.require(target.controller, require);
+        const proto = Object.getPrototypeOf(controller);
 
-        controller = this.swapper.require(target.controller, require);
-
-        if (_.isFunction(controller[target.method]))
+        if (_.isFunction(proto[target.method]))
         {
-            if (_.isFunction(controller._before)) {
-                await this._handleAsync(controller._before(req, res));
+            if (_.isFunction(proto._before)) {
+                await this._handleAsync(proto._before.call(controller, req, res));
             }
 
-            await this._handleAsync(controller[target.method](req, res));
+            await this._handleAsync(proto[target.method].call(controller, req, res));
 
-            if (_.isFunction(controller._after)) {
-                await this._handleAsync(controller._after(req, res));
+            if (_.isFunction(proto._after)) {
+                await this._handleAsync(proto._after.call(controller, req, res));
             }
 
             if (res.finished === false) {

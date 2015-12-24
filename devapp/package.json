@@ -1,7 +1,7 @@
 {
-  "name": "",
-  "version": "1.0.0",
-  "description": "",
+  "name": "maya-devapp",
+  "version": "0.0.0",
+  "description": "Example app for development maya.js",
   "main": "app.js",
   "dependencies": {
     "fly": "^0.8.4",
@@ -12,5 +12,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  }
+  },
+  "author": "Ragg",
+  "license": "MIT"
 }

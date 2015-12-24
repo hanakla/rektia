@@ -24,13 +24,18 @@ export default class ModuleSwapper {
     require(modulePath, callerRequire) {
         callerRequire = callerRequire || require;
 
-        var fullPath = callerRequire.resolve(modulePath);
+        try {
+            var fullPath = callerRequire.resolve(modulePath);
 
-        if (this.options.watch === true) {
-            this.registerWatcher(fullPath);
+            if (this.options.watch === true) {
+                this.registerWatcher(fullPath);
+            }
+
+            return callerRequire(fullPath);
         }
-
-        return callerRequire(fullPath);
+        catch (e) {
+            throw new Error(`Module loading failed for '${modulePath}'. (${e.message})`);
+        }
     }
 
     // watch (path, callback) {
@@ -42,7 +47,7 @@ export default class ModuleSwapper {
 
         if (! this.isSwappableModuleCache(cache)) { return; }
 
-        cache.exports.dispose();
+        cache.exports._dispose();
         delete require.cache[fullPath];
         require(fullPath);
 

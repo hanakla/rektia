@@ -1,6 +1,6 @@
 var hasOwnProperty = {}.hasOwnProperty;
 
-export function get(obj, key) {
+export function get(obj, key, defaults) {
     if (key == null) {
         return obj;
     }
@@ -11,7 +11,7 @@ export function get(obj, key) {
 
     while (current = keys.shift()) {
         if (keys.length !== 0 &&  (typeof pt !== "object" || ! hasOwnProperty.call(pt, current))) {
-            return;
+            return defaults;
         }
 
         pt = pt[current];
