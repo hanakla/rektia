@@ -60,9 +60,7 @@ export async function clearStyleDest() {
 
 export async function buildStyles() {
     await this.source(source.styles)
-        .stylus({
-            use : []
-        })
+        .stylus(require("./config/stylus.js"))
         .target(dest.styles);
 }
 
