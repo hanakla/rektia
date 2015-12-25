@@ -96,6 +96,10 @@ export default class App {
     // router;
 
     /**
+     * @property {Logger} logger
+     */
+
+    /**
      * @param {Object} options
      * @param {String} options.env Application running environment
      * @param {String} options.appRoot Application running path
