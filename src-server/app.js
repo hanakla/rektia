@@ -17,6 +17,8 @@ import bodyParser from "body-parser";
 import attachParams from "./middleware/attach-params"
 import serverError from "./middleware/server-error";
 import router from "./middleware/router";
+import reloaderInjector from "./middleware/reloader-injector";
+import ioWatchAssets from "./middleware/io-watch-assets";
 
 const VERSION = require(path.join(__dirname, "../package.json")).version;
 
@@ -173,6 +175,11 @@ export default class App {
     _registerMiddlewares() {
         const staticRoot = path.join(this.options.appRoot, ".tmp/");
         const controllersDir = path.join(this.options.appRoot, "controller/");
+
+        if (this.options.env === App.ENV_DEVEL) {
+            this._express.use(reloaderInjector());
+            this._socketio.use(ioWatchAssets());
+        }
 
         this._express.use(express.static(staticRoot));
 
