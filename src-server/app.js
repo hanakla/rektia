@@ -131,6 +131,7 @@ export default class App {
         this.config.load();
 
         this._express = express();
+        this._socketio = socketio();
 
         this._exportClasses();
         global.maya = this;
@@ -190,7 +191,7 @@ export default class App {
     _listen(hostname, backlog, callback) {
         try {
             this._server = this._express.listen(this.options.port, hostname, backlog, callback);
-            this._socketio = socketio(this._server);
+            this._socketio.attach(this._server);
 
             this.logger.info("App", `<maya.js start on port ${this.options.port} in ${this.options.env} environment.>`);
         }
