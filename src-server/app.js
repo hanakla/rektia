@@ -143,19 +143,25 @@ export default class App {
     }
 
     async start() {
-        this.config.startWatch();
+        try {
+            this.config.startWatch();
 
-        await this._buildScripts();
+            await this._buildScripts();
 
-        this._setExpressConfig();
+            this._setExpressConfig();
 
-        // Assumption register all middlewares before listen()
-        this._registerMiddlewares();
+            // Assumption register all middlewares before listen()
+            this._registerMiddlewares();
 
-        this._listen();
+            this._listen();
 
-        if (this.options.env === App.ENV_DEVEL) {
-            this._startAssetsWatching();
+            if (this.options.env === App.ENV_DEVEL) {
+                this._startAssetsWatching();
+            }
+        }
+        catch (e) {
+            this.logger.error("App#start", `${e.message}\n${e.stack}`);
+            throw e;
         }
     }
 
