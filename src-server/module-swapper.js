@@ -2,8 +2,6 @@ import fs from "fs";
 import Swappable from "./swappable";
 import prettyLog from "./utils/pretty-log"
 
-const LABEL = "[ModuleSwapper]";
-
 export default class ModuleSwapper {
 
     /**
@@ -13,12 +11,18 @@ export default class ModuleSwapper {
 
     /**
      * @property {Object} options
+     * @property {Logger} options.logger
      */
     // options;
+
+    /**
+     * @property {Logger} logger
+     */
 
     constructor(options) {
         this.watcher = {};
         this.options = options;
+        this.logger = options.logger;
     }
 
     require(modulePath, callerRequire) {
@@ -51,7 +55,7 @@ export default class ModuleSwapper {
         delete require.cache[fullPath];
         require(fullPath);
 
-        console.log(`\u001b[36;1m${LABEL} \u001b[m\u001b[36mswapped module ${fullPath}\u001b[m`);
+        this.logger.info("ModuleSwapper", "swapped module %s", fullPath);
     }
 
     isSwappableModuleCache(cache) {
@@ -64,7 +68,7 @@ export default class ModuleSwapper {
     registerWatcher(fullPath) {
         if (this.watcher[fullPath]) { return; }
 
-        console.log(`\u001b[36;1m${LABEL} \u001b[m\u001b[36mstart watching : \u001b[m${fullPath}`);
+        this.logger.verbose("ModuleSwapper", "start watching : %s", fullPath);
 
         this.watcher[fullPath] = fs.watch(fullPath, (event, filename) => {
             switch (event) {

@@ -115,6 +115,7 @@ export default class App {
         this.logger = new Logger();
 
         this.swapper = new ModuleSwapper({
+            logger  : this.logger,
             watch   : this.options.watch || true
         });
 
