@@ -56,7 +56,7 @@ export default class Logger extends Emitter {
         super();
 
         this.options = _.defaults({}, options, {
-            logLevel : logLevel.info
+            logLevel : logLevel.info.level
         });
 
         Object.keys(logLevel).forEach((logType) => {
