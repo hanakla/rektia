@@ -120,6 +120,7 @@ export default class App {
         });
 
         this.config = new ConfigLoader(this.swapper, {
+            logger      : this.logger,
             configDir   : path.join(this.options.appRoot, "config/"),
             env         : this.options.env
         });
