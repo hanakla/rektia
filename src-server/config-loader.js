@@ -8,6 +8,29 @@ import App from "./app";
 import * as deep from "./utils/deep"
 
 export default class ConfigLoader {
+
+    /**
+     * @private
+     * @property {Emitter} _emitter
+     */
+
+    /**
+     * @private
+     * @property {ModuleSwapper} _swapper
+     */
+
+    /**
+     * @private
+     * @property {Object} options
+     * @property {String} options.configDir
+     * @property {String} options.env
+     */
+
+    /**
+     * @private
+     * @property {Object} _configs
+     */
+
     /**
      * @class ConfigLoader
      * @constructor
