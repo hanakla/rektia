@@ -9,6 +9,7 @@ import yargs from "yargs";
 import ModuleSwapper from "./module-swapper";
 import ConfigLoader from "./config-loader"
 import NotAllowedException from "./exception/not-allowed"
+import Logger from "./logger";
 import * as prettyLog from "./utils/pretty-log"
 
 // Middleware
@@ -95,6 +96,10 @@ export default class App {
     // router;
 
     /**
+     * @property {Logger} logger
+     */
+
+    /**
      * @param {Object} options
      * @param {String} options.env Application running environment
      * @param {String} options.appRoot Application running path
@@ -111,11 +116,15 @@ export default class App {
             port    : 3000
         });
 
+        this.logger = new Logger();
+
         this.swapper = new ModuleSwapper({
+            logger  : this.logger,
             watch   : this.options.watch || true
         });
 
         this.config = new ConfigLoader(this.swapper, {
+            logger      : this.logger,
             configDir   : path.join(this.options.appRoot, "config/"),
             env         : this.options.env
         });
@@ -141,7 +150,7 @@ export default class App {
     }
 
     async _buildScripts() {
-        console.log("\u001b[36;1m[App Builder]\u001b[m\u001b[36m Run build.js...\u001b[m");
+        this.logger.info("App Builder", "Run build.js");
 
         const buildScript = path.join(this.options.appRoot, "build.js");
         const builder = this.swapper.require(buildScript, require);
@@ -183,9 +192,10 @@ export default class App {
             this._server = this._express.listen(this.options.port, hostname, backlog, callback);
             this._socketio = socketio(this._server);
 
-            console.log(`\u001b[36;1m<maya.js start on port ${this.options.port} in ${this.options.env} environment.>\u001b[m`);
+            this.logger.info("App", `<maya.js start on port ${this.options.port} in ${this.options.env} environment.>`);
         }
         catch (e) {
+            this.logger.error("App", "Handle Exception on startup maya.js (%s)", e.message);
             prettyLog.error("Handle Exception on startup maya.js", e);
         }
     }

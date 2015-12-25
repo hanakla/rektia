@@ -8,6 +8,34 @@ import App from "./app";
 import * as deep from "./utils/deep"
 
 export default class ConfigLoader {
+
+    /**
+     * @private
+     * @property {Emitter} _emitter
+     */
+
+    /**
+     * @private
+     * @property {ModuleSwapper} _swapper
+     */
+
+    /**
+     * @private
+     * @property {Object} options
+     * @property {String} options.configDir
+     * @property {String} options.env
+     */
+
+    /**
+     * @private
+     * @property {Object} _configs
+     */
+
+    /**
+     * @private
+     * @property {Logger} logger
+     */
+
     /**
      * @class ConfigLoader
      * @constructor
@@ -20,6 +48,7 @@ export default class ConfigLoader {
         this._emitter = new Emitter();
         this._swapper = swapper;
         this.options = options;
+        this.logger = options.logger;
         this._configs = Object.create(null);
     }
 
@@ -60,7 +89,7 @@ export default class ConfigLoader {
      */
     startWatch() {
         fs.watch(this.options.configDir, {recursive: true}, (ev, file) => {
-            console.log(`\u001b[36m[ConfigLoader] Reload config : ${file}`);
+            this.logger.info("ConfigLoader", "Reloading config : %s", file);
             this.load();
         });
     }
