@@ -10,6 +10,7 @@ import ModuleSwapper from "./module-swapper";
 import ConfigLoader from "./config-loader"
 import NotAllowedException from "./exception/not-allowed"
 import Logger from "./logger";
+import FileWatcher from "./file-watcher";
 import * as prettyLog from "./utils/pretty-log"
 
 // Middleware
@@ -119,6 +120,7 @@ export default class App {
         });
 
         this.logger = new Logger();
+        this.watcher = new FileWatcher();
 
         this.swapper = new ModuleSwapper({
             logger  : this.logger,
@@ -150,6 +152,10 @@ export default class App {
         this._registerMiddlewares();
 
         this._listen();
+
+        if (this.options.env === App.ENV_DEVEL) {
+            this._startAssetsWatching();
+        }
     }
 
     async _buildScripts() {
@@ -206,6 +212,38 @@ export default class App {
             this.logger.error("App", "Handle Exception on startup maya.js (%s)", e.message);
             prettyLog.error("Handle Exception on startup maya.js", e);
         }
+    }
+
+    _startAssetsWatching() {
+        const staticDir = path.join(this.options.appRoot, ".tmp/");
+        const stylesDir = path.join(staticDir, "styles/");
+        const controllersDir = path.join(this.options.appRoot, "controller/");
+        const viewsDir = path.join(this.options.appRoot, "views/");
+
+        // Request swapping links
+        const swap = _.debounce((type, fileUrl) => {
+            this._socketio.to("__maya__").emit("__maya__.swap", {fileType: "css", fileUrl});
+        }, 1000, { maxWait: 5000});
+
+        // Request page reloading
+        const reload = _.debounce((file) => {
+            this._socketio.to("__maya__").emit("__maya__.reload");
+        }, 1000, { maxWait: 5000});
+
+        // watch static assets
+        this.watcher.watch(staticDir, (event, file) => {
+            if (/^styles\/.+/.test(file)) {
+                swap("css", `/${file}`);
+            }
+            else {
+                reload();
+            }
+        });
+
+        // watch controllers changes
+        this.watcher.watch(controllersDir, (event, file) => {
+            reload();
+        });
     }
 
     use(...args) {
