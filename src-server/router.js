@@ -298,10 +298,6 @@ export default class Router {
                 await this._handleAsync(proto._after.call(controller, req, res));
             }
 
-            if (res.finished === false) {
-                res.end();
-            }
-
             return;
         }
 

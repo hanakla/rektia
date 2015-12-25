@@ -10,6 +10,7 @@ import ModuleSwapper from "./module-swapper";
 import ConfigLoader from "./config-loader"
 import NotAllowedException from "./exception/not-allowed"
 import Logger from "./logger";
+import FileWatcher from "./file-watcher";
 import * as prettyLog from "./utils/pretty-log"
 
 // Middleware
@@ -17,6 +18,8 @@ import bodyParser from "body-parser";
 import attachParams from "./middleware/attach-params"
 import serverError from "./middleware/server-error";
 import router from "./middleware/router";
+import reloaderInjector from "./middleware/reloader-injector";
+import ioWatchAssets from "./middleware/io-watch-assets";
 
 const VERSION = require(path.join(__dirname, "../package.json")).version;
 
@@ -117,6 +120,7 @@ export default class App {
         });
 
         this.logger = new Logger();
+        this.watcher = new FileWatcher();
 
         this.swapper = new ModuleSwapper({
             logger  : this.logger,
@@ -128,25 +132,37 @@ export default class App {
             configDir   : path.join(this.options.appRoot, "config/"),
             env         : this.options.env
         });
+
         this.config.load();
 
         this._express = express();
+        this._socketio = socketio();
 
         this._exportClasses();
         global.maya = this;
     }
 
     async start() {
-        this.config.startWatch();
+        try {
+            this.config.startWatch();
 
-        await this._buildScripts();
+            await this._buildScripts();
 
-        this._setExpressConfig();
+            this._setExpressConfig();
 
-        // Assumption register all middlewares before listen()
-        this._registerMiddlewares();
+            // Assumption register all middlewares before listen()
+            this._registerMiddlewares();
 
-        this._listen();
+            this._listen();
+
+            if (this.options.env === App.ENV_DEVEL) {
+                this._startAssetsWatching();
+            }
+        }
+        catch (e) {
+            this.logger.error("App#start", `${e.message}\n${e.stack}`);
+            throw e;
+        }
     }
 
     async _buildScripts() {
@@ -173,6 +189,11 @@ export default class App {
         const staticRoot = path.join(this.options.appRoot, ".tmp/");
         const controllersDir = path.join(this.options.appRoot, "controller/");
 
+        if (this.options.env === App.ENV_DEVEL) {
+            this._express.use(reloaderInjector());
+            this._socketio.use(ioWatchAssets());
+        }
+
         this._express.use(express.static(staticRoot));
 
         this._express.use(bodyParser());
@@ -190,7 +211,7 @@ export default class App {
     _listen(hostname, backlog, callback) {
         try {
             this._server = this._express.listen(this.options.port, hostname, backlog, callback);
-            this._socketio = socketio(this._server);
+            this._socketio.attach(this._server);
 
             this.logger.info("App", `<maya.js start on port ${this.options.port} in ${this.options.env} environment.>`);
         }
@@ -198,6 +219,38 @@ export default class App {
             this.logger.error("App", "Handle Exception on startup maya.js (%s)", e.message);
             prettyLog.error("Handle Exception on startup maya.js", e);
         }
+    }
+
+    _startAssetsWatching() {
+        const staticDir = path.join(this.options.appRoot, ".tmp/");
+        const stylesDir = path.join(staticDir, "styles/");
+        const controllersDir = path.join(this.options.appRoot, "controller/");
+        const viewsDir = path.join(this.options.appRoot, "views/");
+
+        // Request swapping links
+        const swap = _.debounce((type, fileUrl) => {
+            this._socketio.to("__maya__").emit("__maya__.swap", {fileType: "css", fileUrl});
+        }, 1000, { maxWait: 5000});
+
+        // Request page reloading
+        const reload = _.debounce((file) => {
+            this._socketio.to("__maya__").emit("__maya__.reload");
+        }, 1000, { maxWait: 5000});
+
+        // watch static assets
+        this.watcher.watch(staticDir, (event, file) => {
+            if (/^styles\/.+/.test(file)) {
+                swap("css", `/${file}`);
+            }
+            else {
+                reload();
+            }
+        });
+
+        // watch controllers changes
+        this.watcher.watch(controllersDir, (event, file) => {
+            reload();
+        });
     }
 
     use(...args) {
