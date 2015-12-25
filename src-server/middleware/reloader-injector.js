@@ -18,8 +18,26 @@ const injectScript = `
     function connect(io) {
         var socket = io.connect();
 
+        // use for resolve relative url to absolute url
+        var aEl = document.createElement("a");
+
         socket.on("connect", function () {
             console.info("%c[maya.js]%c Start watching assets changes.", "background-color:#00bbe3; color:#fff", "");
+
+            socket.on("__maya__.swap", function (change) {
+                if (change.fileType !== "css") { return; }
+                if (typeof document.querySelectorAll !== "function") { return; }
+
+                aEl.href = change.fileUrl;
+
+                var absoluteFileUrl = aEl.href;
+                var targetElements = [].slice.call(document.querySelectorAll("link[rel='stylesheet']"), 0);
+                targetElements.forEach(function (el) {
+                    if (el.href.indexOf(absoluteFileUrl) === 0) {
+                        el.href = absoluteFileUrl + "?" + Date.now();
+                    }
+                });
+            });
 
             socket.on("__maya__.reload", function () {
                 // no using location.reload() for skip form repost.
