@@ -132,6 +132,7 @@ export default class App {
             configDir   : path.join(this.options.appRoot, "config/"),
             env         : this.options.env
         });
+
         this.config.load();
 
         this._express = express();
