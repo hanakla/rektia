@@ -63,6 +63,18 @@ describe "cli test", ->
             fs.removeSync(initRoot)
 
 
+        it "`maya init` should not running if any options taked", (next) ->
+            exit = sinon.spy ->
+                exit.called.should.be.true()
+                next()
+
+            process = mayaAsync(["init", "--arg"] , {
+                cwd : __dirname
+                # stdio : "inherit"
+            })
+            process.on("exit", exit)
+
+
     describe "cli cqc", ->
         it "`maya cqc` should running on maya.js project dir", (next)->
             exit = sinon.spy()
