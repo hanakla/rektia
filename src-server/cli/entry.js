@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 // Check valid maya.js project
-function exitIfInvalidMayaProject() {
+module.exports.exitIfInvalidMayaProject = function exitIfInvalidMayaProject() {
     const appRoot = process.cwd();
 
     try {
@@ -27,51 +27,52 @@ function exitIfInvalidMayaProject() {
     process.exit(-1);
 }
 
+module.exports.run = function run() {
+    const [, , command, ...args] = process.argv;
 
-const [, , command, ...args] = process.argv;
+    switch (command) {
+        case "init":
+            require("./init")(args);
+            break;
 
-switch (command) {
-    case "init":
-        require("./init")(args);
-        break;
+        case "cqc":
+            exitIfInvalidMayaProject();
+            require("./cqc")(args);
+            break;
 
-    case "cqc":
-        exitIfInvalidMayaProject();
-        require("./cqc")(args);
-        break;
+        case "_dev":
+            process.chdir(path.join(__dirname, "../../devapp"));
+            require("./cqc")(args);
+            break;
 
-    case "_dev":
-        process.chdir(path.join(__dirname, "../../devapp"));
-        require("./cqc")(args);
-        break;
+        case "export":
+            exitIfInvalidMayaProject();
+            require("./export")(args);
+            break;
 
-    case "export":
-        exitIfInvalidMayaProject();
-        require("./export")(args);
-        break;
+        case "g":
+        case "generate":
+            exitIfInvalidMayaProject();
+            require("./generate")(args);
+            break;
 
-    case "g":
-    case "generate":
-        exitIfInvalidMayaProject();
-        require("./generate")(args);
-        break;
+        case "h":
+        case "help":
+        default:
+            if (command !== undefined) {
+                console.log(`\u001b[31mCommand not found : ${command}\u001b[m\n`);
+            }
+            console.log(
+    `Usage :
+        maya <command> [<options>...]
 
-    case "h":
-    case "help":
-    default:
-        if (command !== undefined) {
-            console.log(`\u001b[31mCommand not found : ${command}\u001b[m\n`);
-        }
-        console.log(
-`Usage :
-    maya <command> [<options>...]
-
-Commands :
-    cqc\t\t\tStart maya.js server.
-    export\t\tExport maya.js components for other libraries.
-    generate(g)\t\tGenerate some components
-    help\t\tShow this help
-`
-        );
-        process.exit(0);
-}
+    Commands :
+        cqc\t\t\tStart maya.js server.
+        export\t\tExport maya.js components for other libraries.
+        generate(g)\t\tGenerate some components
+        help\t\tShow this help
+    `
+            );
+            process.exit(0);
+    }
+};
