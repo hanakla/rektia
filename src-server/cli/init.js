@@ -11,7 +11,7 @@ module.exports.run = run;
 
 function _copyBoilerplate(appDir) {
     const boilerplatePath = path.join(__dirname, "../../boilerplate/");
-    const fromFiles = glob.sync(path.join(boilerplatePath, "**/{*,.gitkeep}"), {mark: true})
+    const fromFiles = glob.sync(path.join(boilerplatePath, "**/{*,.gitkeep,.gitignore}"), {mark: true})
         // exclude directories
         .filter((fromPath) => fromPath[fromPath.length - 1] !== "/");
 
