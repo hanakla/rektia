@@ -35,5 +35,5 @@ maya cqc
 ```
 
 # License
-maya.js licensed under `MIT License`.
-See [LICENSE](https://github.com/Ragg-/maya.js/blob/master/LICENSE)
+maya.js licensed under `MIT License`.  
+See [LICENSE](https://github.com/Ragg-/maya.js/blob/master/LICENSE).
