@@ -2,12 +2,16 @@ import fs from "fs-extra"
 import path from "path";
 import glob from "glob";
 import {spawnSync} from "child_process";
+import yargs from "yargs";
 
 import App from "../app";
 
-function copyBoilerplate(appDir) {
+module.exports._copyBoilerplate = _copyBoilerplate;
+module.exports.run = run;
+
+function _copyBoilerplate(appDir) {
     const boilerplatePath = path.join(__dirname, "../../boilerplate/");
-    const fromFiles = glob.sync(path.join(boilerplatePath, "**/{*,.gitkeep}"), {mark: true})
+    const fromFiles = glob.sync(path.join(boilerplatePath, "**/{*,.gitkeep,.gitignore}"), {mark: true})
         // exclude directories
         .filter((fromPath) => fromPath[fromPath.length - 1] !== "/");
 
@@ -22,13 +26,22 @@ function copyBoilerplate(appDir) {
     });
 }
 
-module.exports = function (argv) {
+function parseArgs(argv) {
+    const parser = yargs
+    .strict();
+
+    return parser.parse(argv)
+}
+
+function run(argv) {
+    const options = parseArgs(argv);
+
     const appDir = process.cwd();
     const packageJsonPath = path.join(appDir, "package.json");
 
     // copy files
     console.log("\u001b[36m[maya.js] Generate project files.\u001b[m");
-    copyBoilerplate(appDir);
+    _copyBoilerplate(appDir);
 
     // npm init
     var npmInitReuslt = spawnSync("npm", ["init"], {stdio : "inherit"});

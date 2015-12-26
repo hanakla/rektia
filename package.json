@@ -32,7 +32,8 @@
     "fly-notify": "^0.3.4",
     "fly-uglify": "^1.0.0",
     "mocha": "^2.3.4",
-    "should": "^8.0.1"
+    "should": "^8.0.1",
+    "sinon": "^1.17.2"
   },
   "dependencies": {
     "body-parser": "^1.14.1",
@@ -41,6 +42,7 @@
     "eventemitter3": "^1.1.1",
     "express": "^4.13.3",
     "fs-extra": "^0.26.3",
+    "fs-plus": "^2.8.1",
     "glob": "^6.0.1",
     "jade": "^1.11.0",
     "lodash": "^3.10.1",
