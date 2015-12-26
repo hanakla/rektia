@@ -2,24 +2,43 @@ import fs from "fs";
 import path from "path";
 
 // Check valid maya.js project
-module.exports.exitIfInvalidMayaProject = function exitIfInvalidMayaProject(cwd) {
+module.exports._isValidMayaProject = function _isValidMayaProject(cwd) {
     try {
         const packageJson = require(path.join(cwd, "package.json"));
         const deps = packageJson.dependencies;
         const devDeps = packageJson.devDependencies;
 
         if (deps && Object.keys(deps).indexOf("maya") !== -1) {
-            return;
+            return true;
         }
 
         if (devDeps && Object.keys(devDeps).indexOf("maya") !== -1) {
-            return;
+            return true;
         }
 
-        console.error("\u001b[31mHere is not maya.js project. \n(reliance on maya.js can not be found in `dependencies` or `devDependencies`)\u001b[m");
+        return "DEPENDENCY_NOT_FOUND";
     }
     catch (e) {
-        console.error("\u001b[31mHere is not maya.js project. \n(package.json not found.)\u001b[m");
+        return "PACKAGE_JSON_NOT_FOUND";
+    }
+};
+
+
+module.exports._exitIfInvalidMayaProject = function _exitIfInvalidMayaProject(cwd) {
+    const valid = _isValidMayaProject(cwd);
+
+    if (valid === true) {
+        return;
+    }
+
+    switch (valid) {
+        case "DEPENDENCY_NOT_FOUND":
+            console.error("\u001b[31mHere is not maya.js project. \n(reliance on maya.js can not be found in `dependencies` or `devDependencies`)\u001b[m");
+            break;
+
+        case "PACKAGE_JSON_NOT_FOUND":
+            console.error("\u001b[31mHere is not maya.js project. \n(package.json not found.)\u001b[m");
+            break;
     }
 
     process.exit(-1);
@@ -35,7 +54,7 @@ module.exports.run = function run() {
             break;
 
         case "cqc":
-            exitIfInvalidMayaProject(cwd);
+            _exitIfInvalidMayaProject(cwd);
             require("./cqc")(args);
             break;
 
@@ -45,13 +64,13 @@ module.exports.run = function run() {
             break;
 
         case "export":
-            exitIfInvalidMayaProject(cwd);
+            _exitIfInvalidMayaProject(cwd);
             require("./export")(args);
             break;
 
         case "g":
         case "generate":
-            exitIfInvalidMayaProject(cwd);
+            _exitIfInvalidMayaProject(cwd);
             require("./generate")(args);
             break;
 
