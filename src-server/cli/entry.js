@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 // Check valid maya.js project
-module.exports._isValidMayaProject = function _isValidMayaProject(cwd) {
+function _isValidMayaProject(cwd) {
     try {
         const packageJson = require(path.join(cwd, "package.json"));
         const deps = packageJson.dependencies;
@@ -24,7 +24,7 @@ module.exports._isValidMayaProject = function _isValidMayaProject(cwd) {
 };
 
 
-module.exports._exitIfInvalidMayaProject = function _exitIfInvalidMayaProject(cwd) {
+function _exitIfInvalidMayaProject(cwd) {
     const valid = _isValidMayaProject(cwd);
 
     if (valid === true) {
@@ -43,6 +43,9 @@ module.exports._exitIfInvalidMayaProject = function _exitIfInvalidMayaProject(cw
 
     process.exit(-1);
 }
+
+module.exports._isValidMayaProject = _isValidMayaProject;
+module.exports._exitIfInvalidMayaProject = _exitIfInvalidMayaProject;
 
 module.exports.run = function run() {
     const cwd = process.cwd();
