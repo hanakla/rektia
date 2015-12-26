@@ -81,15 +81,15 @@ module.exports.run = function run() {
                 console.log(`\u001b[31mCommand not found : ${command}\u001b[m\n`);
             }
             console.log(
-    `Usage :
-        maya <command> [<options>...]
+`Usage :
+    maya <command> [<options>...]
 
-    Commands :
-        cqc\t\t\tStart maya.js server.
-        export\t\tExport maya.js components for other libraries.
-        generate(g)\t\tGenerate some components
-        help\t\tShow this help
-    `
+Commands :
+    cqc\t\t\tStart maya.js server.
+    export\t\tExport maya.js components for other libraries.
+    generate(g)\t\tGenerate some components
+    help\t\tShow this help
+`
             );
             process.exit(0);
     }
