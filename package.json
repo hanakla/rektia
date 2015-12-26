@@ -42,6 +42,7 @@
     "eventemitter3": "^1.1.1",
     "express": "^4.13.3",
     "fs-extra": "^0.26.3",
+    "fs-plus": "^2.8.1",
     "glob": "^6.0.1",
     "jade": "^1.11.0",
     "lodash": "^3.10.1",
