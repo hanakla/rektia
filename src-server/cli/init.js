@@ -2,6 +2,7 @@ import fs from "fs-extra"
 import path from "path";
 import glob from "glob";
 import {spawnSync} from "child_process";
+import yargs from "yargs";
 
 import App from "../app";
 
@@ -25,7 +26,16 @@ function _copyBoilerplate(appDir) {
     });
 }
 
+function parseArgs(argv) {
+    const parser = yargs
+    .strict();
+
+    return parser.parse(argv)
+}
+
 function run(argv) {
+    const options = parseArgs(argv);
+
     const appDir = process.cwd();
     const packageJsonPath = path.join(appDir, "package.json");
 
