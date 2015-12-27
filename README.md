@@ -10,17 +10,17 @@ Web application framework for Node.js
 - Developer's `Try-Catch-Try` iteration assistance.  
   maya.js supporting `Save on Reload` for `static assets` and `Controller`, `View`, `Model`.
 
-- MVC + Logic  
-  maya.js is made as a basic MVC framework.  
-  But maya.js is separates `Logic` from Model.  
-  It's thought to be able to use Logic in Browser, and it may removes db connections from tests and makes those tests to be more simpler.
-
 - DRY for code  
   Build system builtin, maya.js uses `Fly`, `Webpack`, `Stylus` as it default.  
   And setting up to be able to `require` View, Logic from Browser-side javascript,
 
 - Realtime Web  
   maya.js build in supports for socket.io.
+
+- MVC + Logic (**Experimental researchinhg**)  
+  maya.js is made as a basic MVC framework.  
+  But maya.js is separates `Logic` from Model.  
+  It's thought to be able to use Logic in Browser, and it may removes db connections from tests and makes those tests to be more simpler.
 
 # Install
 ```
