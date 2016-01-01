@@ -5,13 +5,16 @@ import _ from "lodash";
 import express from "express";
 import socketio from "socket.io";
 import yargs from "yargs";
+import Waterline from "waterline";
 
 import ModuleSwapper from "./module-swapper";
 import ConfigLoader from "./config-loader"
 import NotAllowedException from "./exception/not-allowed"
+import ModelLoader from "./model-loader";
 import Logger from "./logger";
 import FileWatcher from "./file-watcher";
 import * as prettyLog from "./utils/pretty-log"
+import Model from "./model";
 
 // Middleware
 import bodyParser from "body-parser";
@@ -121,6 +124,7 @@ export default class App {
 
         this.logger = new Logger();
         this.watcher = new FileWatcher();
+        this.waterline = new Waterline();
 
         this.swapper = new ModuleSwapper({
             logger  : this.logger,
@@ -134,6 +138,11 @@ export default class App {
         });
 
         this.config.load();
+
+        this._modelLoader = new ModelLoader(this.swapper, {
+            modelDir : path.join(this.options.appRoot, "models/"),
+        });
+        this._modelLoader.load();
 
         this._express = express();
         this._socketio = socketio();
@@ -149,6 +158,8 @@ export default class App {
             await this._buildScripts();
 
             this._setExpressConfig();
+
+            this.models = await this._modelLoader.setupModels(this.waterline, this.config.get("database"));
 
             // Assumption register all middlewares before listen()
             this._registerMiddlewares();
@@ -177,6 +188,7 @@ export default class App {
 
     _exportClasses() {
         this.NotAllowedException = NotAllowedException;
+        this.Model = Model;
         this._express.config = {get : (key) => this.config.get(key) };
     }
 
