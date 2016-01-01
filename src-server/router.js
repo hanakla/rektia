@@ -120,9 +120,11 @@ export default class Router {
 
             var pathInfo = path.parse(relativePath);
             var controllerName = pathInfo.name;
-            var urlFragments = pathInfo.dir.split("/").map((fragment) => `/${fragment}`);
+            var urlFragments = pathInfo.dir.split("/")
+                .filter((fragment) => fragment !== "")
+                .map((fragment) => `/${fragment}`);
 
-            if (controllerName === "_root_" && urlFragments[0] !== "/") {
+            if (controllerName === "_root_" && urlFragments.length !== 0) {
                 throw new Error("_root_ Controller only deployment as `app/controller/_root_.js`");
             }
 
@@ -147,7 +149,7 @@ export default class Router {
                     mappedUrl[0] = `/${urlName}`;
                 }
                 else {
-                    mappedUrl.push(`/${controllerName}`, `/${urlName}`);
+                    mappedUrl.push(`/${urlName}`);
                 }
 
                 urlMaps.push([httpMethod, mappedUrl, {
