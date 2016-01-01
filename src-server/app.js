@@ -9,12 +9,14 @@ import Waterline from "waterline";
 
 import ModuleSwapper from "./module-swapper";
 import ConfigLoader from "./config-loader"
-import NotAllowedException from "./exception/not-allowed"
 import ModelLoader from "./model-loader";
 import Logger from "./logger";
 import FileWatcher from "./file-watcher";
 import * as prettyLog from "./utils/pretty-log"
+
+// Exporting Classes
 import Model from "./model";
+import NotAllowedException from "./exception/not-allowed"
 
 // Middleware
 import bodyParser from "body-parser";
