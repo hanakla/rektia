@@ -79,13 +79,8 @@ export default class Router {
     }
 
     load(routes) {
-        // try {
         this.routeTree.mergeFlattenTree(this._prefetchControllers());
         this.routeTree.mergeFlattenTree(this._prefetchRoutes(routes));
-        // }
-        // catch (e) {
-        //     PrettyLog.error("Handle Exception in maya.js Router", e);
-        // }
     }
 
     /**
