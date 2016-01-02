@@ -7,8 +7,8 @@ import socketio from "socket.io";
 import yargs from "yargs";
 import Waterline from "waterline";
 
-import ModuleSwapper from "./module-swapper";
-import ConfigLoader from "./config-loader"
+import ModuleSwapper from "./loader/module-swapper";
+import ConfigLoader from "./loader/config-loader"
 import ModelLoader from "./model-loader";
 import Logger from "./logger";
 import FileWatcher from "./file-watcher";
