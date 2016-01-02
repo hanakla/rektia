@@ -10,7 +10,7 @@ html(lang="en")
                     margin: 0;
                     font-size: 16px;
                     font-family: "游ゴシック体", "Yu Gothic", YuGothic, "ヒラギノ角ゴ Pro", "Hiragino Kaku Gothic Pro", "メイリオ", "Meiryo", sans-serif;
-                    
+
                     color: #234;
                     background-color: #fafeff;
                 }
@@ -72,13 +72,14 @@ html(lang="en")
                     margin: 32px 0 0;
                     padding: 8px 16px;
                     border-top: 1px solid rgba(151, 139, 161, 0.5);
-                
+
                     color: #aaa;
                     text-align: center;
                     font-size: 12px;
                 }
-                
+
                 .container {
+                    position: relative;
                     width: 720px;
                     max-width: 100%;
                     margin: 0 auto;
@@ -86,13 +87,13 @@ html(lang="en")
                 p {
                     line-height: 2;
                 }
-                
+
                 @media (max-width: 48rem) {
                     h1 {
                         font-size: 56px;
                     }
                 }
-                
+
                 @media (max-width: 40rem) {
                     h1 {
                         font-size: 40px;
@@ -100,7 +101,7 @@ html(lang="en")
                 }
 
     body
-        header
+        header#scrolling-header
             h1 Welcome to maya.js
             p.container.lead.
                 You are looking <code>app/views/index.jade</code> now.<br>
@@ -111,12 +112,24 @@ html(lang="en")
             p.
                 This page is wrote in <code>app/views/index.jade</code>.<br>
                 You change the that file, you can rewrite this page.
-            
+
             h2 Q. Where is processing of this page may be written?
             p.
                 This page is rendered via <code>`index` method</code> on <code>app/controller/_root_.js</code>.<br>
                 If you want to some processing for this page, let write code into that method.
-                
+
         footer
             p.container
                 em &quot;I'm a fights out type, earlier than think.&quot;
+
+        script
+            :js
+                !function () {
+                    var header = document.querySelector("#scrolling-header");
+                    var main = document.querySelector("main");
+
+                    window.addEventListener("scroll", function (e) {
+                        header.style.top = -(document.body.scrollTop * .7) + "px";
+                        main.style.top = -(document.body.scrollTop * .5) + "px";
+                    }, false);
+                }();

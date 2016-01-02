@@ -5,6 +5,17 @@ module.exports = Controller.create({
         res.render("index");
     },
 
+    *yield(req, res) {
+        const message = yield new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve("this message passed with yield* (*゜ᴗ ゜*)");
+            }, 1000);
+        });
+
+        res.type("text/html; charset=UTF-8");
+        res.end(message);
+    },
+
     "403"(req, res) {
         throw new maya.NotAllowedException();
     },
@@ -29,5 +40,10 @@ module.exports = Controller.create({
         res
             .type("text/html; charset=UTF-8")
             .end("Correctry called private method via routes.js");
+    },
+
+    lang(req, res) {
+        console.log(req.getLocale());
+        res.end();
     }
 });

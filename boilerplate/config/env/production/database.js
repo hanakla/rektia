@@ -1,9 +1,15 @@
 module.exports = {
-    "default" : {
-        "driver"    : "mysql",
-        "host"      : "localhost",
-        "user"      : "",
-        "password"  : "",
-        "database"  : ""
+    connections : {
+        default : {
+            adapter     : "mysql",
+            host        : "localhost",
+            user        : "",
+            password    : "",
+            database    : ""
+        }
+    },
+
+    defaults : {
+        migration : 'safe',
     }
 };

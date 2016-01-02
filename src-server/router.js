@@ -1,4 +1,4 @@
-import "babel-polyfill"
+import "babel-polyfill";
 
 import fs from "fs";
 import path from "path";
@@ -12,6 +12,8 @@ import * as PrettyLog from "./utils/pretty-log"
 import Controller from "./controller";
 import ModuleSwapper from "./module-swapper";
 import RouteTree from "./route-tree"
+
+import handleAsync from "./utils/handle-async";
 
 import NotFoundException from "./exception/notfound";
 import ServerErrorException from "./exception/server-error";
@@ -77,13 +79,8 @@ export default class Router {
     }
 
     load(routes) {
-        // try {
         this.routeTree.mergeFlattenTree(this._prefetchControllers());
         this.routeTree.mergeFlattenTree(this._prefetchRoutes(routes));
-        // }
-        // catch (e) {
-        //     PrettyLog.error("Handle Exception in maya.js Router", e);
-        // }
     }
 
     /**
@@ -118,9 +115,11 @@ export default class Router {
 
             var pathInfo = path.parse(relativePath);
             var controllerName = pathInfo.name;
-            var urlFragments = pathInfo.dir.split("/").map((fragment) => `/${fragment}`);
+            var urlFragments = pathInfo.dir.split("/")
+                .filter((fragment) => fragment !== "")
+                .map((fragment) => `/${fragment}`);
 
-            if (controllerName === "_root_" && urlFragments[0] !== "/") {
+            if (controllerName === "_root_" && urlFragments.length !== 0) {
                 throw new Error("_root_ Controller only deployment as `app/controller/_root_.js`");
             }
 
@@ -145,7 +144,7 @@ export default class Router {
                     mappedUrl[0] = `/${urlName}`;
                 }
                 else {
-                    mappedUrl.push(`/${controllerName}`, `/${urlName}`);
+                    mappedUrl.push(`/${urlName}`);
                 }
 
                 urlMaps.push([httpMethod, mappedUrl, {
@@ -289,66 +288,18 @@ export default class Router {
         if (_.isFunction(proto[target.method]))
         {
             if (_.isFunction(proto._before)) {
-                await this._handleAsync(proto._before.call(controller, req, res));
+                await handleAsync(proto._before.call(controller, req, res));
             }
 
-            await this._handleAsync(proto[target.method].call(controller, req, res));
+            await handleAsync(proto[target.method].call(controller, req, res));
 
             if (_.isFunction(proto._after)) {
-                await this._handleAsync(proto._after.call(controller, req, res));
+                await handleAsync(proto._after.call(controller, req, res));
             }
 
             return;
         }
 
         throw new NotFoundException();
-    }
-
-    /**
-     * @param {Promise|Generator|*} value
-     */
-    async _handleAsync(value) {
-        var iterateGenerator = function (generator, resolve, reject, value) {
-            try {
-               var result = generator.next(value);
-
-               if (result.done === true)  {
-                   resolve(result.value);
-                   return;
-               }
-
-               if (! result.value) {
-                   iterateGenerator(generator, resolve, reject);
-                   return;
-               }
-
-               // Wait for Promise
-               if (_.isFunction(result.value.then === "function"))
-               {
-                   result.value.then(value => {
-                       iterateGenerator(generator, resolve, reject, value);
-                   });
-                   return;
-               }
-           }
-           catch (e) {
-               reject(e);
-           }
-        };
-
-        return new Promise((resolve, reject) => {
-            if (value == null) {
-                resolve(value);
-            }
-            else if (_.isFunction(value.next)) {
-                iterateGenerator(value, resolve, reject);
-            }
-            else if (_.isFunction(value.then)) {
-                value.then(resolve, reject);
-            }
-            else {
-                resolve(value);
-            }
-        });
     }
 }

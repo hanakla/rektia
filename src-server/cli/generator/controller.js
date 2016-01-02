@@ -35,7 +35,9 @@ function parseArgs(argv) {
         .describe("f", "Overwrite files to even exist")
 
         .boolean("help")
-        .alias("help", "h");
+        .alias("help", "h")
+
+        .strict();
 
     const options = parser.parse(argv);
 

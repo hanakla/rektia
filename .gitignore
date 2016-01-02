@@ -5,3 +5,5 @@ lib/
 /maya.js
 
 node_modules/
+
+specs/.tmp/
