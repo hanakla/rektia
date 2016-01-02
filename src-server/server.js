@@ -1,22 +1,11 @@
 import fs from "fs";
 import path from "path";
+import http from "http";
+import https from "https";
 
 import _ from "lodash";
 import express from "express";
 import socketio from "socket.io";
-import yargs from "yargs";
-import Waterline from "waterline";
-
-import ModuleSwapper from "./loader/module-swapper";
-import ConfigLoader from "./loader/config-loader"
-import ModelLoader from "./model-loader";
-import Logger from "./logger";
-import FileWatcher from "./file-watcher";
-import * as prettyLog from "./utils/pretty-log"
-
-// Exporting Classes
-import Model from "./model";
-import NotAllowedException from "./exception/not-allowed"
 
 // Middleware
 import bodyParser from "body-parser";
@@ -26,47 +15,7 @@ import router from "./middleware/router";
 import reloaderInjector from "./middleware/reloader-injector";
 import ioWatchAssets from "./middleware/io-watch-assets";
 
-const VERSION = require(path.join(__dirname, "../package.json")).version;
-
-
-export default class App {
-    static get VERSION() { return VERSION;}
-    static get ENV_DEVEL() { return "devel"; }
-    static get ENV_PRODUCTION() { return "production"; }
-
-    /**
-     * @param {String} argv argv, pre excuted `process.argv.slice(2)`
-     * @return {Object}
-     */
-    static parseArgs(argv) {
-        var args = yargs
-        .string("port")
-        .default("port", 3000)
-        .describe("port", "Listening port number.")
-
-        // Not implement for disable watching
-        // .boolean("watch")
-        // .default("watch", true)
-        // .alias("w", "watch")
-        // .describe("watch", "Watch Model, View, Controller changing.")
-
-        .string("env")
-        .default("env", "devel")
-        .describe("env", "Specify running environment (production, devel, test).")
-
-        .help("help")
-        .alias("h", "help")
-
-        .parse(argv);
-
-        return {
-            port    : args.port | 0,
-            watch   : !! args.watch,
-            env     : args.env
-        };
-    }
-
-
+export default class Server {
     /**
      * @private
      * @property {Object} options
@@ -91,11 +40,6 @@ export default class App {
      */
     // _server
 
-    /**
-     * @private
-     * @property {Swapper} swapper
-     */
-    // swapper;
 
     /**
      * @private
@@ -104,106 +48,59 @@ export default class App {
     // router;
 
     /**
-     * @property {Logger} logger
+     * @class Server
+     * @constructor
+     * @param {Object} options
+     * @param {ModuleSwapper} options.swapper
+     * @param {Logger} options.logger
      */
+    constructor(options) {
+        this._swapper = options.swapper;
+        this._logger = options.logger;
+        this._express = express();
+        this._socketio = socketio();
+    }
 
     /**
+     * Start up http(s) server
      * @param {Object} options
-     * @param {String} options.env Application running environment
+     * @param {ConfigLoader} options.config
      * @param {String} options.appRoot Application running path
+     * @param {Object|Boolean} options.https HTTPS options
+     * @param {Object|Boolean} options.https.key path to SSL key
+     * @param {Object|Boolean} options.https.cert path to SSL cert
      * @param {Number} options.port Listening port number
      * @param {Object} options.routes route definition object
      * @param {Boolean} options.watch if true, enable watch for Controller, Model, View
      */
-    constructor(options) {
-        this.options = _.defaults(options, {
-            env     : "devel",
-            appRoot : process.cwd() + path.sep,
-            watch   : false,
-            routes  : {},
-            port    : 3000
-        });
-
-        this.logger = new Logger();
-        this.watcher = new FileWatcher();
-        this.waterline = new Waterline();
-
-        this.swapper = new ModuleSwapper({
-            logger  : this.logger,
-            watch   : this.options.watch || true
-        });
-
-        this.config = new ConfigLoader(this.swapper, {
-            logger      : this.logger,
-            configDir   : path.join(this.options.appRoot, "config/"),
-            env         : this.options.env
-        });
-
-        this.config.load();
-
-        this._modelLoader = new ModelLoader(this.swapper, {
-            modelDir : path.join(this.options.appRoot, "models/"),
-        });
-        this._modelLoader.load();
-
-        this._express = express();
-        this._socketio = socketio();
-
-        this._exportClasses();
-        global.maya = this;
-    }
-
-    async start() {
+    async start(options) {
         try {
-            this.config.startWatch();
-
-            await this._buildScripts();
-
-            this._setExpressConfig();
-
-            this.models = await this._modelLoader.setupModels(this.waterline, this.config.get("database"));
+            this._setExpressConfig(options);
 
             // Assumption register all middlewares before listen()
-            this._registerMiddlewares();
+            this._registerMiddlewares(options);
 
-            this._listen();
 
-            if (this.options.env === App.ENV_DEVEL) {
-                this._startAssetsWatching();
-            }
+            await this._listen(options);
         }
         catch (e) {
-            this.logger.error("App#start", `${e.message}\n${e.stack}`);
+            this._logger.error("Server#start", `${e.message}\n${e.stack}`);
             throw e;
         }
     }
 
-    async _buildScripts() {
-        this.logger.info("App Builder", "Run build.js");
-
-        const buildScript = path.join(this.options.appRoot, "build.js");
-        const builder = this.swapper.require(buildScript, require);
-        const returns = builder(this.options.env);
-
-        await returns.then ? returns : Promise.reoslve();
+    _setExpressConfig(options) {
+        this._express.set("views", path.join(options.appRoot, "views/"));
+        this._express.set("view engine", options.config.get("maya.view.engine"));
     }
 
-    _exportClasses() {
-        this.NotAllowedException = NotAllowedException;
-        this.Model = Model;
-        this._express.config = {get : (key) => this.config.get(key) };
-    }
+    _registerMiddlewares(options) {
+        const staticRoot = path.join(options.appRoot, ".tmp/");
+        const controllersDir = path.join(options.appRoot, "controller/");
 
-    _setExpressConfig() {
-        this._express.set("views", path.join(this.options.appRoot, "views/"));
-        this._express.set("view engine", this.config.get("maya.view.engine"));
-    }
-
-    _registerMiddlewares() {
-        const staticRoot = path.join(this.options.appRoot, ".tmp/");
-        const controllersDir = path.join(this.options.appRoot, "controller/");
-
-        if (this.options.env === App.ENV_DEVEL) {
+        if (options.watch) {
+            // if `watch` option enabled
+            // inject reloader code into all `text/html` responses.
             this._express.use(reloaderInjector());
             this._socketio.use(ioWatchAssets());
         }
@@ -213,57 +110,34 @@ export default class App {
         this._express.use(bodyParser());
         this._express.use(attachParams(this));
 
-        this._express.use(router(this.swapper, {
-            watch   : this.options.env === App.ENV_DEVEL,
-            routes  : this.config.get("routes"),
+        this._express.use(router(this._swapper, {
+            watch   : options.watch,
+            routes  : options.routes,
             controllerDir  : controllersDir
         }));
 
         this._express.use(serverError());
     }
 
-    _listen(hostname, backlog, callback) {
-        try {
-            this._server = this._express.listen(this.options.port, hostname, backlog, callback);
-            this._socketio.attach(this._server);
-
-            this.logger.info("App", `<maya.js start on port ${this.options.port} in ${this.options.env} environment.>`);
+    async _listen(options) {
+        // Create server
+        if (options.https) {
+            this._server = https.createServer({
+                key : fs.readFileSync(options.https.key),
+                cert : fs.readFileSync(options.https.cert),
+            }, this._express);
         }
-        catch (e) {
-            this.logger.error("App", "Handle Exception on startup maya.js (%s)", e.message);
-            prettyLog.error("Handle Exception on startup maya.js", e);
+        else {
+            this._server = http.createServer(this._express);
         }
-    }
 
-    _startAssetsWatching() {
-        const staticDir = path.join(this.options.appRoot, ".tmp/");
-        const stylesDir = path.join(staticDir, "styles/");
-        const controllersDir = path.join(this.options.appRoot, "controller/");
-        const viewsDir = path.join(this.options.appRoot, "views/");
+        // Attach Socket.io to server
+        // console.log(this._socketio);
+        this._socketio.attach(this._server);
 
-        // Request swapping links
-        const swap = _.debounce((type, fileUrl) => {
-            this._socketio.to("__maya__").emit("__maya__.swap", {fileType: "css", fileUrl});
-        }, 1000, { maxWait: 5000});
-
-        // Request page reloading
-        const reload = _.debounce((file) => {
-            this._socketio.to("__maya__").emit("__maya__.reload");
-        }, 1000, { maxWait: 5000});
-
-        // watch static assets
-        this.watcher.watch(staticDir, (event, file) => {
-            if (/^styles\/.+/.test(file)) {
-                swap("css", `/${file}`);
-            }
-            else {
-                reload();
-            }
-        });
-
-        // watch controllers changes
-        this.watcher.watch(controllersDir, (event, file) => {
-            reload();
+        // Start server
+        return new Promise((resolve, reject) => {
+            this._server.listen(options.port, resolve);
         });
     }
 
