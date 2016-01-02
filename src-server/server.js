@@ -61,6 +61,14 @@ export default class Server {
     }
 
     /**
+     * get socket.io host.
+     * @return {Socketio.Server}
+     */
+    getSocketIo() {
+        return this._sockets;
+    }
+
+    /**
      * Start up http(s) server
      * @param {Object} options
      * @param {ConfigLoader} options.config
