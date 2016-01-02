@@ -1,7 +1,7 @@
-var Maya = require("../");
+var Maya = require("../").Maya;
 
-var options = Maya.App.parseArgs(process.argv.slice(2));
-var app = new Maya.App(Object.assign(options, {
+var options = Maya.parseArgs(process.argv.slice(2));
+var app = new Maya(Object.assign(options, {
     appRoot: process.cwd()
 }));
 
