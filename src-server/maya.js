@@ -175,11 +175,12 @@ export default class Maya {
                 this._startAssetsWatching();
             }
 
-            //
+            // Decide listening port
             const listeningPort = this._options.port == null
                 ? this.config.get("maya.server.port")
                 : this._options.port | 0;
 
+            // Start listening
             await this.server.start({
                 config  : this.config,
                 appRoot : this._options.appRoot,
