@@ -4,8 +4,6 @@ import glob from "glob";
 import {spawnSync} from "child_process";
 import yargs from "yargs";
 
-import App from "../app";
-
 module.exports._copyBoilerplate = _copyBoilerplate;
 module.exports.run = run;
 
