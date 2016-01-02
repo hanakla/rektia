@@ -4,7 +4,7 @@
   "description": "Web application framework for Node.js",
   "author": "Ragg-",
   "license": "MIT",
-  "main": "lib/maya.js",
+  "main": "lib/index.js",
   "bin": {
     "maya": "lib/bin/maya"
   },

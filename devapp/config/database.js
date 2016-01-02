@@ -5,8 +5,8 @@ module.exports = {
         // e.g. use `disk` adapter, execute `npm i --save sails-disk` on shell.
 
         // disk : require("sails-disk"),
-        // memory : require("sails-memory"),
-        mysql : require("sails-mysql"),
+        memory : require("sails-memory"),
+        // mysql : require("sails-mysql"),
         // postgresql : require("sails-postgresql"),
         // mongo : require("sails-mongo"),
         // redis : require("sails-redis")

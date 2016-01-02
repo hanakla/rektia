@@ -50,14 +50,18 @@ export default class Logger extends Emitter {
      * @class Logger
      * @constructor
      * @param {Object} options
-     * @param {Object} options.logLevel logging level (log specified level or more)
+     * @param {Number} options.logLevel logging level (log specified level or more)
+     * @param {Boolean} options.paused Pause log printing.
      */
     constructor(options) {
         super();
 
         this.options = _.defaults({}, options, {
-            logLevel : logLevel.info.level
+            logLevel : logLevel.info.level,
+            paused : false,
         });
+
+        this._buffer = [];
 
         Object.keys(logLevel).forEach((logType) => {
             const logger = logLevel[logType].logger;
@@ -71,7 +75,13 @@ export default class Logger extends Emitter {
                 const logLabel = util.format(labeler, label);
                 const plainMessage = util.format(message, ...more);
                 const logMessage = color + plainMessage  + "\u001b[m";
-                logger(logLabel + logMessage);
+
+                if (this.options.paused) {
+                    this._buffer.push({logger, level, message: logLabel + logMessage});
+                }
+                else {
+                    logger(logLabel + logMessage);
+                }
 
                 this.emit("log", {
                     type: logType,
@@ -85,10 +95,28 @@ export default class Logger extends Emitter {
 
     setLogLevel(level) {
         if (typeof level === "string") {
-            this.options.logLevel = logLevel[level];
+            this.options.logLevel = logLevel[level].level;
         }
         else if (typeof level === "number") {
             this.options.logLevel = level;
         }
+    }
+
+    /**
+     * Pause error printing (not "log" event emitting)
+     */
+    pause() {
+        this.options.paused = true;
+    }
+
+    /**
+     * Resume error printing
+     */
+    resume() {
+        this.options.paused = false;
+        this._buffer.forEach(logItem => {
+            if (logItem.level < this.options.logLevel) { return; }
+            logItem.logger(logItem.message)
+        });
     }
 }

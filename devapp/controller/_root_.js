@@ -40,5 +40,10 @@ module.exports = Controller.create({
         res
             .type("text/html; charset=UTF-8")
             .end("Correctry called private method via routes.js");
+    },
+
+    lang(req, res) {
+        console.log(req.getLocale());
+        res.end();
     }
 });

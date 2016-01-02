@@ -19,8 +19,6 @@ const spawnSync = require("child_process").spawnSync;
  *      it's optional.
  */
 module.exports = (env) => {
-    console.log(`[in build.js] Building environment is "${env}"`);
-
     const npmBinProcess = spawnSync("npm", ["bin"]);
 
     if (npmBinProcess.status !== 0) {
@@ -33,10 +31,16 @@ module.exports = (env) => {
 
     return new Promise((resolve, reject) => {
         if (env === "devel") {
-            spawn(flyBin, ["devel"], {stdio: "inherit"}).on("data", resolve);
+            // if env is "devel", run fly as watching mode.
+            const fly = spawn(flyBin, ["devel"]);
+
+            fly.stderr.on("error", chunk => console.error(chunk.toString()));
+            process.on("exit", () => { fly.kill(); });
+
+            resolve();
         }
         else {
-            // if env is "test" or "production", perfect wait complete compile.
+            // if env is "test" or "production", wait compile complete.
             spawnSync(flyBin, ["production"], {stdio: "inherit"});
             resolve();
         }
