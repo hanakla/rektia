@@ -4,8 +4,8 @@ import fs from "fs";
 import glob from "glob";
 import {Emitter} from "event-kit"
 
-import App from "./app";
-import * as deep from "./utils/deep"
+import App from "../app";
+import * as deep from "../utils/deep"
 
 export default class ConfigLoader {
 
