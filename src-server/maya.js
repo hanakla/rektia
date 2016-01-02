@@ -140,6 +140,8 @@ export default class Maya {
             swapper : this.swapper,
             logger : this.logger
         });
+
+        global.maya = this;
     }
 
     /**
