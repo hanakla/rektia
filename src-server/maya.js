@@ -166,6 +166,9 @@ export default class Maya {
             // await this._buildScripts();
             this.logger.info("App#start", "End build");
 
+            // get socket.io host object
+            this.sockets = this.server.getSocketIo();
+
             // if watch option enabled, start chnages watching.
             if (this._options.watch) {
                 this.config.startWatch();
@@ -219,17 +222,18 @@ export default class Maya {
 
         // Request swapping links
         const swap = _.debounce((type, fileUrl) => {
-            this._socketio.to("__maya__").emit("__maya__.swap", {fileType: "css", fileUrl});
-        }, 1000, { maxWait: 5000});
+            this.sockets.to("__maya__").emit("__maya__.swap", {fileType: "css", fileUrl});
+        }, 500, { maxWait: 5000});
 
         // Request page reloading
         const reload = _.debounce((file) => {
-            this._socketio.to("__maya__").emit("__maya__.reload");
-        }, 1000, { maxWait: 5000});
+            this.sockets.to("__maya__").emit("__maya__.reload");
+        }, 500, { maxWait: 5000});
 
         // watch static assets
         this.watcher.watch(staticDir, (event, file) => {
             if (/^styles\/.+/.test(file)) {
+                // if css file updated
                 swap("css", `/${file}`);
             }
             else {
@@ -238,8 +242,9 @@ export default class Maya {
         });
 
         // watch controllers changes
-        this.watcher.watch(controllersDir, (event, file) => {
-            reload();
-        });
+        this.watcher.watch(controllersDir, reload);
+
+        // watch view changes
+        this.watcher.watch(viewsDir, reload);
     }
 }
