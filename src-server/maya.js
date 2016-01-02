@@ -107,7 +107,8 @@ export default class Maya {
 
         // application logger
         this.logger = new Logger({
-            logLevel : 0
+            logLevel : 0,
+            paused : true,
         });
 
         // file watcher
@@ -149,6 +150,10 @@ export default class Maya {
         try {
             // Load configs
             this.config.load({watch: this._options.watch});
+
+            // set log level
+            this.logger.setLogLevel(this.config.get("maya.log.level"));
+            this.logger.resume();
 
             // Load model definitions
             this._modelLoader.load({watch: this._options.watch});
