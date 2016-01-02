@@ -5,8 +5,8 @@ import path from "path";
 import fs from "fs";
 import glob from "glob";
 
-import pascalize from "./utils/pascalize";
-import * as deep from "./utils/deep";
+import pascalize from "../utils/pascalize";
+import * as deep from "../utils/deep";
 
 export default class ModelLoader {
     /**

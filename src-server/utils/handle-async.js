@@ -21,7 +21,7 @@ export default async function handleAync(returnValue) {
            }
 
            // generate next if not done
-           iterateGenerator(generator, resolve, reject);
+           iterateGenerator(generator, resolve, reject, result.value);
            return;
        }
        catch (e) {
