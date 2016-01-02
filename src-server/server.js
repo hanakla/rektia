@@ -29,10 +29,9 @@ export default class Server {
     // _express;
 
     /**
-     * @private
-     * @property {socketio.Server} _socketio
+     * @property {socketio.Server} _sockets
      */
-    // _socketio
+    // _sockets
 
     /**
      * @private
@@ -58,7 +57,7 @@ export default class Server {
         this._swapper = options.swapper;
         this._logger = options.logger;
         this._express = express();
-        this._socketio = socketio();
+        this._sockets = socketio();
     }
 
     /**
@@ -102,7 +101,7 @@ export default class Server {
             // if `watch` option enabled
             // inject reloader code into all `text/html` responses.
             this._express.use(reloaderInjector());
-            this._socketio.use(ioWatchAssets());
+            this._sockets.use(ioWatchAssets());
         }
 
         this._express.use(express.static(staticRoot));
@@ -131,9 +130,8 @@ export default class Server {
             this._server = http.createServer(this._express);
         }
 
-        // Attach Socket.io to server
-        // console.log(this._socketio);
-        this._socketio.attach(this._server);
+        // Attach socket.io to server
+        this._sockets.attach(this._server);
 
         // Start server
         return new Promise((resolve, reject) => {
