@@ -1,5 +1,10 @@
 var Maya = require("maya");
 
+// If you want to use some loader(babel, coffeescript, etc...)
+// Write requre register here. (and install using module via `npm`)
+// require("babel-register");
+// require("coffee-script/register");
+
 var options = Maya.App.parseArgs(process.argv.slice(2));
 var app = new Maya.App(Object.assign(options, {
     appRoot: process.cwd()
