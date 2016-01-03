@@ -7,20 +7,42 @@ import Swappable from "./swappable";
 export default class Model extends Swappable
 {
     static create(proto) {
-        Model._setDefaults(proto);
-
-        const child = extend(proto, Model);
-        _.extend(child.prototype, Object.getPrototypeOf(Waterline.Collection.prototype));
-
-        return child;
+        const Child = extend(proto, Model);
+        return new Child();
     }
 
-    static _setDefaults(proto) {
-        proto.connection == null && (proto.connection = "default");
-    }
+    /**
+     * @property {}
+     */
 
-    constructor(waterline, connections, cb) {
-        super();
-        Waterline.Collection.call(this, waterline, connections, cb);
+    /**
+     * Transform Model to Waterline.Collection
+     * @param {Object} props method and properties for assignes collection.attributes
+     * @param {Object} staticProps method and properties for assignes collection (static).
+     * @return {Waterline.Collection}
+     */
+    toWaterlineCollection(props = {}, staticProps = {}) {
+        const schema = {};
+
+        _.defaults(schema, {
+            identity : this.identity,
+            schema : this.schema,
+            tableName : this.tableName,
+            connection : this.connection,
+            attributes : this.attributes,
+        }, {
+            identity : staticProps.identity,
+            schema : null,
+            tableName : null,
+            connection : "default",
+            attributes : {}
+        });
+
+        delete staticProps.identity;
+
+        _.extend(schema.attributes, props);
+        _.extend(schema, staticProps);
+
+        return Waterline.Collection.extend(schema);
     }
 }

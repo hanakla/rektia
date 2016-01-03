@@ -41,12 +41,13 @@ export default class ModelLoader {
      * @param {ModuleSwapper} swapper
      * @param {Object} options
      * @param {String} options.modelDir
+     * @param {String} options.modelLogicsDir
      */
     constructor(swapper, options) {
         this._swapper = swapper;
         this.options = options;
         this.logger = options.logger;
-        this._modelPaths = [];
+        this._modelInfos = {};
     }
 
     /**
@@ -55,16 +56,33 @@ export default class ModelLoader {
      */
     load() {
         const loadableExtensions = Object.keys(require.extensions).join(",");
+
+        // Load models
         const modelSchemaFiles = glob.sync(`${this.options.modelDir}/**/*{${loadableExtensions}}`);
 
         modelSchemaFiles.forEach(fullPath => {
             const pathInfo = path.parse(fullPath.slice(this.options.modelDir.length));
             const identity = pathInfo.dir + (pathInfo.dir !== "" ? "/" : "") + pathInfo.name;
             const model = this._swapper.require(fullPath);
+            const modelId = (pathInfo.dir !== "" ? pathInfo.dir + "/" : "") + pathInfo.name;;
 
-            model.prototype.identity = identity;
+            this._modelInfos[modelId] = {identity, model: fullPath};
+        });
 
-            this._modelPaths.push(fullPath);
+        // Load logics and assign to model.
+        const logicFiles = glob.sync(`${this.options.modelLogicsDir}/**/*{${loadableExtensions}}`);
+
+        logicFiles.forEach(fullPath => {
+            const relativePath = fullPath.slice(this.options.modelLogicsDir.length);
+            const pathInfo = path.parse(relativePath);
+            const modelId = (pathInfo.dir !== "" ? pathInfo.dir + "/" : "") + pathInfo.name;
+
+            if (! this._modelInfos[modelId]) {
+                this.logger.warn("ModelLoader", `There is no model that corresponds to the Logic.(for app/logics/model-logic/${relativePath})`);
+                return;
+            }
+
+            this._modelInfos[modelId].logic = fullPath;
         });
     }
 
@@ -75,8 +93,17 @@ export default class ModelLoader {
      * @return {Promise<Object>} waterline connected Models
      */
     async setupModels(waterline, options) {
-        this._modelPaths.forEach(fullPath => {
-            waterline.loadCollection(this._swapper.require(fullPath));
+        _.each(this._modelInfos, info => {
+            const modelPath = info.model;
+            const logicPath = info.logic;
+
+            const model = this._swapper.require(modelPath);
+            const logic = logicPath ? _.cloneDeep(this._swapper.require(logicPath)) : {};
+            this._wrapLogicMethods(logic);
+
+            waterline.loadCollection(model.toWaterlineCollection(logic, {
+                identity : info.identity
+            }));
         });
 
         return new Promise((resolve, reject) => {
@@ -98,6 +125,18 @@ export default class ModelLoader {
                 resolve(models);
             });
         });
+    }
+
+    _wrapLogicMethods(obj) {
+        _.each(obj, (prop, name) => {
+            if (! _.isFunction(prop)) return;
+
+            obj[name] = function (...args) {
+                return prop(this, ...args);
+            };
+        });
+
+        return obj;
     }
 
     /**

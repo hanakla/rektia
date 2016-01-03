@@ -129,7 +129,9 @@ export default class Maya {
 
         // Model loader
         this._modelLoader = new ModelLoader(this.swapper, {
+            logger : this.logger,
             modelDir : path.join(this._options.appRoot, "models/"),
+            modelLogicsDir : path.join(this._options.appRoot, "logics/model-logic/"),
         });
 
         // database connector
