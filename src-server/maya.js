@@ -6,7 +6,7 @@ import yargs from "yargs";
 import Logger from "./logger";
 import FileWatcher from "./file-watcher";
 import ModuleSwapper from "./module-swapper";
-import ConfigLoader from "./loader/config-loader"
+import ConfigLoader from "./loader/config-loader";
 import ModelLoader from "./loader/model-loader";
 import Server from "./server";
 
@@ -127,6 +127,9 @@ export default class Maya {
             env         : this._options.env
         });
 
+        // Load configs
+        this.config.load({watch: this._options.watch});
+
         // Model loader
         this._modelLoader = new ModelLoader(this.swapper, {
             logger : this.logger,
@@ -152,9 +155,6 @@ export default class Maya {
      */
     async start() {
         try {
-            // Load configs
-            this.config.load({watch: this._options.watch});
-
             // set log level
             this.logger.setLogLevel(this.config.get("maya.log.level"));
             this.logger.resume();
