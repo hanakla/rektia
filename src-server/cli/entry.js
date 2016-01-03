@@ -53,7 +53,7 @@ module.exports.run = function run() {
 
     switch (command) {
         case "init":
-            require("./init")(args);
+            require("./init").run(args);
             break;
 
         case "cqc":
