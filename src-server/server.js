@@ -8,7 +8,6 @@ import express from "express";
 import socketio from "socket.io";
 
 // Middleware
-import bodyParser from "body-parser";
 import attachParams from "./middleware/attach-params"
 import serverError from "./middleware/server-error";
 import router from "./middleware/router";
@@ -84,9 +83,7 @@ export default class Server {
         try {
             this._setExpressConfig(options);
 
-            // Assumption register all middlewares before listen()
             this._registerMiddlewares(options);
-
 
             await this._listen(options);
         }
@@ -114,7 +111,6 @@ export default class Server {
 
         this._express.use(express.static(staticRoot));
 
-        this._express.use(bodyParser());
         this._express.use(attachParams(this));
 
         this._express.use(router(this._swapper, {
