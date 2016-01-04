@@ -172,7 +172,7 @@ export default class Maya {
 
             // Run build script (`app/build.js`)
             this.logger.info("App#start", "Waiting for build...");
-            // await this._buildScripts();
+            await this._buildScripts();
             this.logger.info("App#start", "End build");
 
             // get socket.io host object
