@@ -28,31 +28,36 @@ export default class Maya {
      * @return {Object}
      */
     static parseArgs(argv) {
-        const args = yargs
-        .string("port")
-        .default("port", 3000)
-        .describe("port", "Listening port number. (It's overrides configured port number)")
+        const parser = yargs()
+            .boolean("interactive")
+            .alias("interactive", "i")
+            .describe("i", "Run with REPL")
 
-        .boolean("no-watch")
-        .alias("w", "no-watch")
-        .describe("no-watch", "No watching Model, View, Controller changing.")
+            .string("port")
+            .describe("port", "Listening port number. (It's overrides configured port number)")
 
-        .string("env")
-        .default("env", "devel")
-        .describe("env", "Specify running environment (production, devel, test).")
+            .boolean("no-watch")
+            .describe("no-watch", "No watching Model, View, Controller changing.")
 
-        .help("help")
-        .alias("h", "help")
+            .string("env")
+            .default("env", "devel")
+            .describe("env", "Specify running environment (production, devel, test).")
 
-        .parse(argv);
+            .help("help")
+            .alias("help", "h")
+
+            .strict();
+
+        const args = parser.parse(argv);
 
         var watch = ! args.w;
-        if (args.env === Maya.ENV_DEVEL && args.w == null) {
+        if (args.w == null && args.env === Maya.ENV_DEVEL) {
             watch = true;
         }
 
         return {
-            port    : args.port,
+            interactive : args.interactive,
+            port    : args.port != null ? parseInt(args.port, 10) : null,
             watch   : watch,
             env     : args.env
         };
@@ -167,7 +172,7 @@ export default class Maya {
 
             // Run build script (`app/build.js`)
             this.logger.info("App#start", "Waiting for build...");
-            // await this._buildScripts();
+            await this._buildScripts();
             this.logger.info("App#start", "End build");
 
             // get socket.io host object
@@ -188,7 +193,7 @@ export default class Maya {
             await this.server.start({
                 config  : this.config,
                 appRoot : this._options.appRoot,
-                port    :  listeningPort,
+                port    : listeningPort,
                 routes  : this.config.get("routes"),
                 watch   : this._options.watch
             });
