@@ -2,22 +2,10 @@ import path from "path";
 import yargs from "yargs";
 import repl from "repl";
 
-function parseArgs(argv) {
-    const parser = yargs()
-        .boolean("interactive")
-        .alias("interactive", "i")
-        .describe("i", "Run with REPL")
-
-        .help("help")
-        .alias("help", "h")
-
-        .strict();
-
-    return parser.parse(argv);
-}
+import Maya from "../maya";
 
 module.exports = function (args) {
-    const options = parseArgs(args);
+    const options = Maya.parseArgs(args);
     const cwd = process.cwd();
     const packageJsonPath = path.join(cwd, "package.json");
     const packageJson = require(packageJsonPath);
