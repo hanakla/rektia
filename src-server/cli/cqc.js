@@ -18,10 +18,10 @@ function parseArgs(argv) {
 
 module.exports = function (args) {
     const options = parseArgs(args);
-    var cwd = process.cwd();
-    var packageJsonPath = path.join(cwd, "package.json");
-    var packageJson = require(packageJsonPath);
-    var entry = path.join(cwd, packageJson.main ? packageJson.main : "app");
+    const cwd = process.cwd();
+    const packageJsonPath = path.join(cwd, "package.json");
+    const packageJson = require(packageJsonPath);
+    const entry = path.join(cwd, packageJson.main ? packageJson.main : "app");
     var replServer;
 
     try {
