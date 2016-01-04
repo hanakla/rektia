@@ -193,7 +193,7 @@ export default class Maya {
             await this.server.start({
                 config  : this.config,
                 appRoot : this._options.appRoot,
-                port    :  listeningPort,
+                port    : listeningPort,
                 routes  : this.config.get("routes"),
                 watch   : this._options.watch
             });
