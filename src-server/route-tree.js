@@ -1,5 +1,8 @@
 import _ from "lodash"
 
+// TODO: Replace searching algorithm to
+//  fragments->method pattern. (Now is `method->fragments` implement).
+// For simplify and reduce searching times.
 export default class RouteTree {
     /**
      * @class RouteTree
@@ -77,6 +80,8 @@ export default class RouteTree {
             .filter(fragment => fragment !== "/"); // ignore single slash
 
         if (! routeTree[httpMethod]) {
+            // if specified method doesn't exists in routeTree
+            // replace method to "all"
             httpMethod = "all";
         }
 
@@ -115,6 +120,11 @@ export default class RouteTree {
                 url : matchedNode._url
             };
         }
+
+        // If not exists handler , re-search with "all" method.
+        // (It's required, if routeTree[httpMethod] is exists and matche fragments exists in routeTree.all,
+        // RouteTree failed to pick matche handler.)
+        return this.findMatchController("all", url, this.tree);
     }
 
     /**
