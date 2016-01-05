@@ -28,16 +28,19 @@ export default function errorHandler() {
 
         var lines = err.stack.split("\n");
 
-        res.status(statusCode)
-            .contentType("text/html; charset=UTF-8")
-            .send(template({
-                error: {
-                    title : lines.shift(),
-                    stack : lines.map((item) => item.replace(/^[\s\t]+/g, ""))
-                }
-            }));
+        if (res.finished === false) {
+            res.status(statusCode)
+                .contentType("text/html; charset=UTF-8")
+                .send(template({
+                    error: {
+                        title : lines.shift(),
+                        stack : lines.map((item) => item.replace(/^[\s\t]+/g, ""))
+                    }
+                }));
 
-        res.end();
+            res.end();
+        }
+
         next();
     };
 };
