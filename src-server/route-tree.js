@@ -73,7 +73,8 @@ export default class RouteTree {
 
         urlFragments = url.split("/")
             .slice(1)  // Remove predixed "/" in "/route/url"
-            .map((f) => `/${f}`);
+            .map(fragment => `/${fragment}`)
+            .filter(fragment => fragment !== "/"); // ignore single slash
 
         if (! routeTree[httpMethod]) {
             httpMethod = "all";
@@ -89,8 +90,23 @@ export default class RouteTree {
         }
 
         if (candidateNodes.length === 1) {
-            let matchedNodeInfo = candidateNodes[0].controller;
-            var matchedNode = candidateNodes[0];
+            let matchedNode = candidateNodes[0];
+            console.log(this.tree);
+            // console.log(candidateNodes);
+
+            if (! matchedNode.controller) {
+                // if matchedNode is middle node.
+                // check "/index" node.
+                if (matchedNode["/index"]) {
+                    matchedNode = matchedNode["/index"];
+                }
+                else {
+                    return;
+                }
+            }
+
+            let matchedNodeInfo = matchedNode.controller;
+
             var matchedPattern = [];
 
             return {
