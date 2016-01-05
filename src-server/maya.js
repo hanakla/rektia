@@ -1,4 +1,5 @@
 import _ from "lodash";
+import fs from "fs";
 import path from "path";
 import Waterline from "waterline";
 import yargs from "yargs";
@@ -229,6 +230,10 @@ export default class Maya {
         const stylesDir = path.join(staticDir, "styles/");
         const controllersDir = path.join(this._options.appRoot, "controller/");
         const viewsDir = path.join(this._options.appRoot, "views/");
+
+        if (! fs.existsSync(staticDir)) {
+            fs.mkdirSync(staticDir);
+        }
 
         // Request swapping links
         const swap = _.debounce((type, fileUrl) => {
