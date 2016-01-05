@@ -99,8 +99,17 @@ export default class Server {
     }
 
     _registerMiddlewares(options) {
+        const staticUrl = options.config.get("maya.server.staticUrl");
         const staticRoot = path.join(options.appRoot, ".tmp/");
         const controllersDir = path.join(options.appRoot, "controller/");
+
+        if (! staticUrl || staticUrl.length === 1 && staticUrl == "/") {
+            throw new Error("Config maya.server.staticUrl can not be empty and `/` only.");
+        }
+
+        if (staticUrl[0] !== "/") {
+            throw new Error("Config maya.server.staticUrl must be start with `/`.");
+        }
 
         if (options.watch) {
             // if `watch` option enabled
@@ -109,9 +118,8 @@ export default class Server {
             this._sockets.use(ioWatchAssets());
         }
 
-        this._express.use(express.static(staticRoot));
-
         this._express.use(attachParams(this));
+        this._express.use(staticUrl, express.static(staticRoot));
 
         this._express.use(router(this._swapper, {
             watch   : options.watch,
