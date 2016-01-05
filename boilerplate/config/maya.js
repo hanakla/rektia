@@ -10,6 +10,11 @@ module.exports = {
         // Running on port 3000
         port : 3000,
 
+        // static assets URL
+        // it's must be start from "/"
+        // static assets can accessing via "http(s)://your-domain/<staticUrl>"
+        staticUrl : "/static",
+
         // if you use https, clear comment out from below code and remove `https: false`
         // and set path to files for `key`, `cert`.
         // https : {
