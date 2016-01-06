@@ -8,11 +8,11 @@ import glob from "glob"
 import Metacarattere  from "metacarattere";
 import _Router from "router";
 
-import * as PrettyLog from "./utils/pretty-log"
+import * as PrettyLog from "./utils/pretty-log";
 import Controller from "./controller";
+import RestController from "./rest-controller";
 import ModuleSwapper from "./module-swapper";
 import RouteTree from "./route-tree"
-
 import handleAsync from "./utils/handle-async";
 
 import NotFoundException from "./exception/notfound";
@@ -68,9 +68,7 @@ export default class Router {
      * @constructor
      * @param {ModuleSwapper} swapper
      * @param {Object} options
-     * @param {Boolean} options.watch
-     * @param {Object} options.routes
-     * @param {String} options.controllerDir
+     * @param {Logger} options.logger
      */
     constructor(swapper, options) {
         this.swapper = swapper;
@@ -78,21 +76,25 @@ export default class Router {
         this.routeTree = new RouteTree();
     }
 
-    load(routes) {
-        this.routeTree.mergeFlattenTree(this._prefetchControllers());
-        this.routeTree.mergeFlattenTree(this._prefetchRoutes(routes));
+    /**
+     * @param {Object} options
+     * @param {Object} options.routes
+     * @param {String} options.controllerDir
+     */
+    load(options) {
+        this.routeTree.mergeFlattenTree(this._prefetchControllers(options.controllerDir));
+        this.routeTree.mergeFlattenTree(this._prefetchRoutes(options));
     }
 
     /**
+     * @param {String} controllerDir with "/" prefix
      * @return {Map}
      */
-    _prefetchControllers() {
-        var routeTree = Object.create(null);
-        var controllerDir = this.options.controllerDir;
-        var loadableExtensions = Object.keys(require.extensions).map((dotext) => dotext.slice(1)).join(",")
-        var controllerPaths = glob.sync(`${controllerDir}/**/*.{${loadableExtensions}}`);
+    _prefetchControllers(controllerDir) {
+        const loadableExtensions = Object.keys(require.extensions).map((dotext) => dotext.slice(1)).join(",")
+        const controllerPaths = glob.sync(`${controllerDir}/**/*.{${loadableExtensions}}`);
 
-        var flattenRoutes = controllerPaths.map((fullPath) => {
+        return controllerPaths.map((fullPath) => {
             // get controller relative path from `app/controller/`
             return [fullPath, fullPath.slice(controllerDir.length)];
         })
@@ -101,10 +103,10 @@ export default class Router {
             // And returns [fullPath, relatePath, methods].
             // `relativePath` is relate path from `app/controller/`
 
-            var controller = this.swapper.require(fullPath, require);
+            const controller = this.swapper.require(fullPath, require);
             this._isValidController(controller);
 
-            var validMethods = this._lookupValidHandler(controller);
+            const validMethods = this._lookupValidHandler(controller);
 
             return [fullPath, relativePath, validMethods];
         })
@@ -113,9 +115,9 @@ export default class Router {
             // Build url <> controller#method map looks
             // ["httpMethod", ["/url", "/fragment"], {handler info}]
 
-            var pathInfo = path.parse(relativePath);
-            var controllerName = pathInfo.name;
-            var urlFragments = pathInfo.dir.split("/")
+            const pathInfo = path.parse(relativePath);
+            const controllerName = pathInfo.name;
+            const urlFragments = pathInfo.dir.split("/")
                 .filter((fragment) => fragment !== "")
                 .map((fragment) => `/${fragment}`);
 
@@ -154,9 +156,7 @@ export default class Router {
             });
 
             return urlMaps;
-        }, [])
-
-        return flattenRoutes;
+        }, []);
     }
 
     /**
@@ -176,28 +176,47 @@ export default class Router {
         const proto = Object.getPrototypeOf(controller);
         const protoMethodAndProps = Object.keys(proto);
 
-        return protoMethodAndProps.filter((methodName) => {
+        const validMethods = protoMethodAndProps.filter((methodName) => {
             // ignore private methods
             if (methodName[0] === "_") { return false; }
 
             // ignore properties
             return _.isFunction(proto[methodName]);
         });
+
+        if (controller instanceof RestController === false) {
+            return validMethods;
+        }
+
+        // if conntroller is a RestController
+        // List up more deep methods
+        const restProto = Object.getPrototypeOf(proto);
+        const restMethods = Object.keys(restProto);
+
+        validMethods.push(...restMethods.filter(methodName => {
+            // ignore private methods
+            if (methodName[0] === "_") { return false; }
+
+            // ignore properties
+            return _.isFunction(restProto[methodName]);
+        }));
+
+        return validMethods;
     }
 
-    _prefetchRoutes(routes) {
-        var routeTree = {};
-        var controllerDir = this.options.controllerDir;
+    _prefetchRoutes(options) {
+        const routes = options.routes;
+        const controllerDir = options.controllerDir;
 
-        var flattenRoutes = _.map(routes, (handler, routeConf) => {
+        return  _.map(routes, (handler, routeConf) => {
             // Build url <> controller#method map looks
             // ["httpMethod", ["/url", "/fragment"], {handler info}]
 
             // handler expects string looks "controller.method" or "path/to/controller.method"
 
             var [httpMethod, url] = routeConf.split(" ");
-            var [controllerName, methodName] = handler.split(".");
-            var unresolvedControllerPath = path.join(controllerDir, controllerName);
+            const [controllerName, methodName] = handler.split(".");
+            const unresolvedControllerPath = path.join(controllerDir, controllerName);
             var fullControllerPath;
 
             if (url === undefined) {
@@ -219,7 +238,7 @@ export default class Router {
             const controller = this.swapper.require(fullControllerPath);
             this._isValidController(controller);
 
-            var urlFragments = url.split("/")
+            const urlFragments = url.split("/")
                 .map((fragment) => `/${fragment}`)
                 .filter((fragment) => fragment !== "/");
 
@@ -228,9 +247,6 @@ export default class Router {
                 method : methodName
             }];
         });
-
-
-        return flattenRoutes;
     }
 
     /**
@@ -238,11 +254,11 @@ export default class Router {
      * @param {http.ServerResponse} res
      */
     async handle(req, res, next) {
-        var method = req.method;
-        var url = req.url;
+        const method = req.method;
+        const url = req.url;
 
         try {
-            var target = this.routeTree.findMatchController(method, url);
+            const target = this.routeTree.findMatchController(method, url);
 
             if (! target)
             {
@@ -250,8 +266,8 @@ export default class Router {
             }
 
             // Assgin URL palaceholder parameters
-            var matcher = new Metacarattere(target.url);
-            var params = matcher.parse(url);
+            const matcher = new Metacarattere(target.pattern);
+            const params = matcher.parse(url);
             _.assign(req.params, params);
 
             // launch

@@ -25,27 +25,32 @@ export default class RouteTree {
     /**
      * @method mergeFlattenTree
      * @param {Array<Array<string, Array<string>, Object>} routeList
+     *  [0] -> httpMethod
+     *  [1] -> url fragments pattern
+     *  [2] -> Controller information
      */
     mergeFlattenTree(routeList) {
-        var routeTree = Object.create(null);
+        const routeTree = Object.create(null);
 
         _.each(routeList, ([httpMethod, urlFragments, handlerInfo], idx, list) => {
-            // Build route tree
             var targetNode;
-            routeTree[httpMethod] = routeTree[httpMethod] || {};
+            const validUrlFragments = urlFragments.filter(f => f !== "/" && f !== "" & !! f);
 
-            urlFragments.reduce((parent, fragment) => {
-                parent[fragment] = parent[fragment] || Object.create(null);
+            // Build route tree
+            const pattern = [];
+            validUrlFragments.reduce((parentNode, fragment) => {
+                pattern.push(fragment);
+                parentNode[fragment] = parentNode[fragment] || Object.create(null);
 
-                targetNode = parent[fragment];
-                targetNode._parent = parent;
-                targetNode._url = (parent._url ? parent._url : "") + fragment;
-                targetNode.isParam = fragment[1] === ":";
+                targetNode = parentNode[fragment];
+                targetNode._isParam = fragment[1] === ":";
+                targetNode._pattern = pattern.join("");
 
-                return parent[fragment];
-            }, routeTree[httpMethod]);
+                return targetNode;
+            }, routeTree);
 
-            targetNode.controller = handlerInfo;
+            targetNode._handlers = targetNode._handlers || Object.create(null);
+            targetNode._handlers[httpMethod] = handlerInfo;
         });
 
         this.merge(routeTree);
@@ -56,6 +61,7 @@ export default class RouteTree {
      * @param {Array<Object>}
      */
     merge(...trees) {
+        // TODO: Implement merge with conflict checking
         return _.merge(this.tree, ...trees);
     }
 
@@ -69,62 +75,34 @@ export default class RouteTree {
      *  url : matched url pattern
      */
     findMatchController(httpMethod, url, routeTree = this.tree) {
-        var targetHandlerInfo;
-        var urlFragments;
-
         httpMethod = httpMethod.toLowerCase();
 
-        urlFragments = url.split("/")
+        const urlFragments = url.split("/")
             .slice(1)  // Remove predixed "/" in "/route/url"
-            .map(fragment => `/${fragment}`)
-            .filter(fragment => fragment !== "/"); // ignore single slash
+            .map(fragment => `/${fragment}`);
 
-        if (! routeTree[httpMethod]) {
-            // if specified method doesn't exists in routeTree
-            // replace method to "all"
-            httpMethod = "all";
-        }
-
-        var candidateNodes = [routeTree[httpMethod]];
-        var currentFragment;
-        var candidateNodes;
-
-        while (currentFragment = urlFragments.shift()) {
+        const candidateNodes = urlFragments.reduce((candidateNodes, currentFragment) => {
             currentFragment = currentFragment === "/" ? "/index" : currentFragment;
-            candidateNodes = this._findMatchNodes(candidateNodes, currentFragment);
+            return this._findMatchNodes(candidateNodes, currentFragment);
+        }, [this.tree]);
+
+        const matchedNode = candidateNodes[0];
+        const handlers = matchedNode != null ? matchedNode._handlers : null;
+
+        if (candidateNodes.length > 1) {
+            console.warn('Conflicted route detected.', candidateNodes.map(node => node._handlers));
+            return;
         }
+        if (! handlers) return;
+        if (! matchedNode || (! handlers[httpMethod] && ! handlers.all)) return;
 
-        if (candidateNodes.length === 1) {
-            let matchedNode = candidateNodes[0];
-            console.log(this.tree);
-            // console.log(candidateNodes);
+        const matchedNodeInfo = (handlers[httpMethod] || handlers.all);
 
-            if (! matchedNode.controller) {
-                // if matchedNode is middle node.
-                // check "/index" node.
-                if (matchedNode["/index"]) {
-                    matchedNode = matchedNode["/index"];
-                }
-                else {
-                    return;
-                }
-            }
-
-            let matchedNodeInfo = matchedNode.controller;
-
-            var matchedPattern = [];
-
-            return {
-                controller : matchedNodeInfo.controller,
-                method : matchedNodeInfo.method,
-                url : matchedNode._url
-            };
-        }
-
-        // If not exists handler , re-search with "all" method.
-        // (It's required, if routeTree[httpMethod] is exists and matche fragments exists in routeTree.all,
-        // RouteTree failed to pick matche handler.)
-        return this.findMatchController("all", url, this.tree);
+        return {
+            controller : matchedNodeInfo.controller,
+            method : matchedNodeInfo.method,
+            pattern : matchedNode._pattern
+        };
     }
 
     /**
@@ -133,11 +111,11 @@ export default class RouteTree {
      * @param {String} fragment a URL fragment likes "/fragment"
      */
     _findMatchNodes(nodes, fragment) {
-        return nodes.reduce((matches, node) => {
-            matches.push(..._.select(node, (child, key) => {
-                return key === fragment || child.isParam;
-            }));
-
+        return _.reduce(nodes, (matches, node) => {
+            const matched = _.select(node, (child, key) => {
+                return key === fragment || child._isParam;
+            });
+            matches.push(...matched);
             return matches;
         }, []);
     }
