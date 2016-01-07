@@ -81,18 +81,23 @@ export default class RouteTree {
             .slice(1)  // Remove predixed "/" in "/route/url"
             .map(fragment => `/${fragment}`);
 
+        if (urlFragments.length === 0) {
+            urlFragments.push("/");
+        }
+
         const candidateNodes = urlFragments.reduce((candidateNodes, currentFragment) => {
-            currentFragment = currentFragment === "/" ? "/index" : currentFragment;
-            return this._findMatchNodes(candidateNodes, currentFragment);
+            const fragment = currentFragment === "/" ? "/index" : currentFragment;
+            return this._findMatchNodes(candidateNodes, fragment);
         }, [this.tree]);
 
         const matchedNode = candidateNodes[0];
         const handlers = matchedNode != null ? matchedNode._handlers : null;
 
         if (candidateNodes.length > 1) {
-            console.warn('Conflicted route detected.', candidateNodes.map(node => node._handlers));
+            console.warn("Can't resolve route.", candidateNodes.map(node => node._handlers));
             return;
         }
+
         if (! handlers) return;
         if (! matchedNode || (! handlers[httpMethod] && ! handlers.all)) return;
 
@@ -111,12 +116,30 @@ export default class RouteTree {
      * @param {String} fragment a URL fragment likes "/fragment"
      */
     _findMatchNodes(nodes, fragment) {
-        return _.reduce(nodes, (matches, node) => {
-            const matched = _.select(node, (child, key) => {
-                return key === fragment || child._isParam;
+        const firstMatches = _.reduce(nodes, (matches, node) => {
+            _.each(node, (child, key) => {
+                if (key === fragment) {
+                    matches.statics.push(child);
+                }
+                else if (child._isParam) {
+                    matches.dynamics.push(child);
+                }
             });
-            matches.push(...matched);
+
             return matches;
-        }, []);
+        }, {dynamics : [], statics: []});
+
+        if (firstMatches.statics.length === 1) {
+            if (! firstMatches.statics[0]._handlers && firstMatches.statics[0]["/index"]) {
+                return [firstMatches.statics[0]["/index"]];
+            }
+
+            return firstMatches.statics;
+        }
+        else if (firstMatches.dynamics.length === 1){
+            return firstMatches.dynamics;
+        }
+
+        return [...firstMatches.statics, ...firstMatches.dynamics];
     }
 }
