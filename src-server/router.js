@@ -2,7 +2,7 @@ import "babel-polyfill";
 
 import fs from "fs";
 import path from "path";
-
+import co from "co";
 import _ from "lodash";
 import glob from "glob"
 import Metacarattere  from "metacarattere";
@@ -13,7 +13,6 @@ import Controller from "./controller";
 import RestController from "./rest-controller";
 import ModuleSwapper from "./module-swapper";
 import RouteTree from "./route-tree"
-import handleAsync from "./utils/handle-async";
 
 import NotFoundException from "./exception/notfound";
 import ServerErrorException from "./exception/server-error";
@@ -304,13 +303,13 @@ export default class Router {
         if (_.isFunction(proto[target.method]))
         {
             if (_.isFunction(proto._before)) {
-                await handleAsync(proto._before.call(controller, req, res));
+                await co(proto._before.call(controller, req, res));
             }
 
-            await handleAsync(proto[target.method].call(controller, req, res));
+            await co(proto[target.method].call(controller, req, res));
 
             if (_.isFunction(proto._after)) {
-                await handleAsync(proto._after.call(controller, req, res));
+                await co(proto._after.call(controller, req, res));
             }
 
             return;
