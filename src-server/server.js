@@ -7,6 +7,8 @@ import _ from "lodash";
 import express from "express";
 import socketio from "socket.io";
 
+import Router from "./router"
+
 // Middleware
 import attachParams from "./middleware/attach-params"
 import serverError from "./middleware/server-error";
@@ -59,6 +61,7 @@ export default class Server {
         this._logger = options.logger;
         this._express = express();
         this._sockets = socketio();
+        this.router = new Router(this._swapper, {logger: this._logger});
     }
 
     /**
@@ -84,8 +87,11 @@ export default class Server {
     async start(options) {
         try {
             this._setExpressConfig(options);
-
             this._registerMiddlewares(options);
+            this.router.load({
+                routes  : options.routes,
+                controllerDir  : path.join(options.appRoot, "controller/")
+            });
 
             await this._listen(options);
         }
@@ -122,13 +128,7 @@ export default class Server {
 
         this._express.use(attachParams(this));
         this._express.use(staticUrl, express.static(staticRoot));
-
-        this._express.use(router(this._swapper, {
-            watch   : options.watch,
-            routes  : options.routes,
-            controllerDir  : controllersDir
-        }));
-
+        this._express.use(router(this.router));
         this._express.use(serverError());
     }
 
