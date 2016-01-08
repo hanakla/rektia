@@ -17,39 +17,41 @@ import ioWatchAssets from "./middleware/io-watch-assets";
 export default class Server {
     /**
      * @private
-     * @property {Object} options
+     * @property {express.Application} _express
      */
-    // options;
+    // _express = null;
 
     /**
      * @private
-     * @property {express.Application} _express
+     * @property {express.Application} _swapper
      */
-    // _express;
+    // _swapper = null;
 
     /**
      * @property {socketio.Server} _sockets
      */
-    // _sockets
+    // _sockets = null;
 
     /**
      * @private
-     * @property {http.Server} _server
+     * @property {http.Server|https.Server} _server
      */
-    // _server
+    // _server = null;
 
 
     /**
      * @private
      * @property {Router} router
      */
-    // router;
+    // router = null;
 
     /**
      * @class Server
      * @constructor
      * @param {Object} options
      * @param {ModuleSwapper} options.swapper
+     * @param {Logger} options.logger
+     * @param {Object} options.routes
      * @param {Logger} options.logger
      */
     constructor(options) {
@@ -73,8 +75,8 @@ export default class Server {
      * @param {ConfigLoader} options.config
      * @param {String} options.appRoot Application running path
      * @param {Object|Boolean} options.https HTTPS options
-     * @param {Object|Boolean} options.https.key path to SSL key
-     * @param {Object|Boolean} options.https.cert path to SSL cert
+     * @param {String} options.https.key path to SSL key
+     * @param {String} options.https.cert path to SSL cert
      * @param {Number} options.port Listening port number
      * @param {Object} options.routes route definition object
      * @param {Boolean} options.watch if true, enable watch for Controller, Model, View
