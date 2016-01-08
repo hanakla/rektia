@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "captains-log": "^0.11.11",
+    "co": "^4.6.0",
     "event-kit": "^1.4.1",
     "eventemitter3": "^1.1.1",
     "express": "^4.13.3",

@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import Waterline from "waterline";
 import yargs from "yargs";
+import co from "co";
 
 import Logger from "./logger";
 import FileWatcher from "./file-watcher";
@@ -10,8 +11,6 @@ import ModuleSwapper from "./module-swapper";
 import ConfigLoader from "./loader/config-loader";
 import ModelLoader from "./loader/model-loader";
 import Server from "./server";
-
-import handleAsync from "./utils/handle-async";
 
 const VERSION = require(path.join(__dirname, "../package.json")).version;
 
@@ -222,7 +221,7 @@ export default class Maya {
         const builder = this.swapper.require(buildScript, require);
         const returns = builder(this._options.env);
 
-        await handleAsync(returns);
+        await co(returns);
     }
 
     _startAssetsWatching() {
