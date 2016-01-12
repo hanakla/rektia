@@ -33,10 +33,8 @@ module.exports = (env) => {
         if (env === "devel") {
             // if env is "devel", run fly as watching mode.
             const fly = spawn(flyBin, ["devel"]);
-
             fly.stderr.on("error", chunk => console.error(chunk.toString()));
             process.on("exit", () => { fly.kill(); });
-
             resolve();
         }
         else {

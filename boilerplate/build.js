@@ -33,7 +33,11 @@ module.exports = (env) => {
 
     return new Promise((resolve, reject) => {
         if (env === "devel") {
-            spawn(flyBin, ["devel"], {stdio: "inherit"}).on("data", resolve);
+            // if env is "devel", run fly as watching mode.
+            const fly = spawn(flyBin, ["devel"]);
+            fly.stderr.on("error", chunk => console.error(chunk.toString()));
+            process.on("exit", () => { fly.kill(); });
+            resolve();
         }
         else {
             // if env is "test" or "production", perfect wait complete compile.
