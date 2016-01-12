@@ -46,49 +46,49 @@ RestController.prototype = _.extend(Object.create(Controller), {
 
     // Delegation handler for Router register
 
-    "get_index"(req, res) {
-        return this._list(req, res);
+    "get_index"(ctx) {
+        return this._list(ctx);
     },
 
-    "get_:id"(req, res) {
-        return this._get(req, res);
+    "get_:id"(ctx) {
+        return this._get(ctx);
     },
 
-    "post_index"(req, res) {
-        return this._post(req, res);
+    "post_index"(ctx) {
+        return this._post(ctx);
     },
 
-    "delete_:id"(req, res) {
-        return this._delete(req, res);
+    "delete_:id"(ctx) {
+        return this._delete(ctx);
     },
 
-    "put_:id"(req, res) {
-        return this._put(req, res);
+    "put_:id"(ctx) {
+        return this._put(ctx);
     },
 
-    "patch_:id"(req, res) {
-        return this._put(req, res);
+    "patch_:id"(ctx) {
+        return this._put(ctx);
     },
 
     // Real handlers
 
-    *_list(req, res) {
-        res.json(yield this.model.find());
+    *_list(ctx) {
+        ctx.body = yield this.model.find();
     },
 
-    *_get(req, res) {
-        res.json(yield this.model.find(req.params.id)[0]);
+    *_get(ctx) {
+        ctx.body = yield this.model.find(req.params.id)[0];
     },
 
-    *_post(req, res) {
-        res.json(yield this.model.create(req.body)[0]);
+    *_post(ctx) {
+        ctx.body = yield this.model.create(req.body)[0];
     },
 
-    *_delete(req, res) {
-        res.json(yield this.model.destroy(req.params.id)[0]);
+    *_delete(ctx) {
+        ctx.body = yield this.model.destroy(req.params.id)[0];
     },
 
-    *_put(req, res) {
-        res.json(yield this.model.update(req.params.id, req.body)[0]);
+    *_put(ctx) {
+        ctx.body = yield this.model.update(req.params.id, req.body)[0];
     }
 });
