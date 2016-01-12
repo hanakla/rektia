@@ -49,9 +49,8 @@ app.use(koaViews(path.join(appRoot, "views/"), {
     }
 }));
 
-app.use(koaStatic(path.join(appRoot, ".tmp/"), {
+app.use(koaStatic(path.join(appRoot, ".tmp/static/"), {
     maxage: 0,
-    defer: true,
 }));
 
 // Running application

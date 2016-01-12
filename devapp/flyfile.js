@@ -8,15 +8,15 @@ const source = {
     html : "./static/**/*.html"
 };
 
-// Compiled assets must export to `app/.tmp/**`
-// maya.js is point to `app/.tmp/` as after compiled static content root.
+// Compiled assets must export to `app/.tmp/static/**`
+// maya.js is point to `app/.tmp/static/` as after compiled static content root.
 const dest = {
-    scripts : "./.tmp/scripts/",
-    styles : "./.tmp/styles/",
-    // css : "./.tmp/styles/",
-    fonts : "./.tmp/fonts/",
-    images : "./.tmp/images/",
-    html : "./.tmp/"
+    scripts : "./.tmp/static/scripts/",
+    styles : "./.tmp/static/styles/",
+    // css : "./.tmp/static/styles/",
+    fonts : "./.tmp/static/fonts/",
+    images : "./.tmp/static/images/",
+    html : "./.tmp/static/"
 }
 
 //
@@ -25,8 +25,7 @@ const dest = {
 
 export async function devel() {
     await this.watch([source.scripts, source.views], ["buildScripts"]);
-    await this.watch([source.styles], ["clearStyleDest", "buildStyles"]);
-    await this.watch([source.css], ["clearStyleDest", "copyStyles"]);
+    await this.watch([source.styles, source.css], ["buildStyles"]);
     await this.watch([source.fonts], ["copyFonts"]);
     await this.watch([source.images], ["copyImages"]);
     await this.watch([source.html], ["copyHtml"]);
@@ -57,17 +56,13 @@ export async function buildScripts() {
     //     .target(dest.scripts);
 }
 
-export async function clearStyleDest() {
-    await this.clear(dest.styles);
-}
-
 export async function buildStyles() {
+    await this.clear(dest.styles);
+
     await this.source(source.styles)
         .stylus(require("./config/stylus.js"))
         .target(dest.styles);
-}
 
-export async function copyStyles() {
     await this.source(source.css)
         .target(dest.styles);
 }
@@ -87,6 +82,7 @@ export async function copyImages() {
 }
 
 export async function copyHtml() {
+    await this.clear(`${dest.html}**/*.html`);
     await this.source(source.html)
         .target(dest.html);
 }
