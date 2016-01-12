@@ -4,7 +4,7 @@ const InMemorySessionStore = require("../").InMemorySessionStore;
 
 // Middlewares
 const koaViews = require("koa-views");
-const koaStatic = require("koa-static");
+const koaStatic = require("koa-static-server");
 const koaBody = require("koa-short-body");
 const session = require("koa-generic-session");
 
@@ -49,9 +49,11 @@ app.use(koaViews(path.join(appRoot, "views/"), {
     }
 }));
 
-app.use(koaStatic(path.join(appRoot, ".tmp/"), {
-    maxage: 0,
-    defer: true,
+app.use(koaStatic({
+    rootDir : path.join(appRoot, ".tmp/static/"),
+    rootPath : app.config.get("maya.server.staticUrl"),
+    maxage: 0, // milliseconds
+    gzip : true,
 }));
 
 // Running application

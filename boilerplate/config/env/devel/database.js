@@ -3,7 +3,7 @@ module.exports = {
     connections : {
         // define connections <connectionName : {Options}> pair.
         default : {
-            adapter     : "mysql",
+            adapter     : "memory",
             // Set your database host.
             host        : "localhost",
             // Set your database connection user.
