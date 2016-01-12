@@ -252,30 +252,31 @@ export default class Router {
      * @param {http.IncomingMessage} req
      * @param {http.ServerResponse} res
      */
-    async handle(req, res, next) {
-        const method = req.method;
-        const url = req.url;
+    async handle(ctx) {
+        const method = ctx.method;
+        const url = ctx.url;
 
         try {
             const target = this.routeTree.findMatchController(method, url);
 
             if (! target)
             {
-                throw new NotFoundException();
+                ctx.status = 404;
+                return;
             }
 
             // Assgin URL palaceholder parameters
             const matcher = new Metacarattere(target.pattern);
             const params = matcher.parse(url);
-            _.assign(req.params, params);
+            ctx.params = ctx.params || {};
+            _.assign(ctx.params, params, {});
 
             // launch
-            await this._launchController(target, req, res);
-            next();
+            await this._launchController(target, ctx);
         }
         catch (e) {
             // All Exceptions Handled By `server-error` middleware.
-            next(e);
+            throw e;
         }
     }
 
@@ -296,20 +297,20 @@ export default class Router {
      * @param {http.IncomingMessage} req
      * @param {http.ServerResponse} res
      */
-    async _launchController(target, req, res) {
+    async _launchController(target, ctx) {
         const controller = this.swapper.require(target.controller, require);
         const proto = Object.getPrototypeOf(controller);
 
         if (_.isFunction(proto[target.method]))
         {
             if (_.isFunction(proto._before)) {
-                await co(proto._before.call(controller, req, res));
+                await co(proto._before.call(controller, ctx));
             }
 
-            await co(proto[target.method].call(controller, req, res));
+            await co(proto[target.method].call(controller, ctx));
 
             if (_.isFunction(proto._after)) {
-                await co(proto._after.call(controller, req, res));
+                await co(proto._after.call(controller, ctx));
             }
 
             return;

@@ -92,6 +92,10 @@ export default class Maya {
      * @property {Waterline} waterline
      */
 
+    /**
+     * @property {String} keys
+     */
+
 
     /**
      * @param {Object} options
@@ -150,6 +154,11 @@ export default class Maya {
             swapper : this.swapper,
             logger : this.logger
         });
+
+        Object.defineProperty(this, "keys", {
+            set : value => this.server._koa.keys = value,
+            get : () => this.server._koa.keys
+        })
 
         global.maya = this;
     }

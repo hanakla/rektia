@@ -1,4 +1,4 @@
-import fs from "fs-extra"
+import fs from "fs-extra";
 import path from "path";
 import glob from "glob";
 import {spawnSync} from "child_process";
@@ -9,9 +9,11 @@ module.exports.run = run;
 
 function _copyBoilerplate(appDir) {
     const boilerplatePath = path.join(__dirname, "../../boilerplate/");
-    const fromFiles = glob.sync(path.join(boilerplatePath, "**/{*,.gitkeep,.gitignore}"), {mark: true})
-        // exclude directories
-        .filter((fromPath) => fromPath[fromPath.length - 1] !== "/");
+    const fromFiles = glob.sync(path.join(boilerplatePath, "**/{*,.gitkeep,.gitignore}"), {mark: true, nodir: true});
+
+    if (! fs.existsSync(appDir)) {
+        fs.ensureDirSync(appDir);
+    }
 
     // Copy boilerplate files if does not exists in appDir
     fromFiles.forEach((fromPath) => {
@@ -34,7 +36,7 @@ function parseArgs(argv) {
 function run(argv) {
     const options = parseArgs(argv);
 
-    const appDir = process.cwd();
+    const appDir = options._[0] ? path.join(process.cwd(), options._[0]) : process.cwd();
     const packageJsonPath = path.join(appDir, "package.json");
 
     // copy files
@@ -42,7 +44,7 @@ function run(argv) {
     _copyBoilerplate(appDir);
 
     // npm init
-    var npmInitReuslt = spawnSync("npm", ["init"], {stdio : "inherit"});
+    var npmInitReuslt = spawnSync("npm", ["init"], {stdio : "inherit", cwd : appDir});
 
     if (npmInitReuslt.status !== 0) {
         console.error("\u001b[31m[maya.js] package.json setup failed.\u001b[m");

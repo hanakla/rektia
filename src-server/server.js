@@ -4,7 +4,7 @@ import http from "http";
 import https from "https";
 
 import _ from "lodash";
-import express from "express";
+import koa from "koa";
 import socketio from "socket.io";
 
 import Router from "./router"
@@ -59,9 +59,11 @@ export default class Server {
     constructor(options) {
         this._swapper = options.swapper;
         this._logger = options.logger;
-        this._express = express();
+        this._koa = koa();
         this._sockets = socketio();
         this.router = new Router(this._swapper, {logger: this._logger});
+
+        this.use(serverError());
     }
 
     /**
@@ -86,13 +88,11 @@ export default class Server {
      */
     async start(options) {
         try {
-            this._setExpressConfig(options);
             this._registerMiddlewares(options);
             this.router.load({
                 routes  : options.routes,
                 controllerDir  : path.join(options.appRoot, "controller/")
             });
-
             await this._listen(options);
         }
         catch (e) {
@@ -101,47 +101,27 @@ export default class Server {
         }
     }
 
-    _setExpressConfig(options) {
-        this._express.set("views", path.join(options.appRoot, "views/"));
-        this._express.set("view engine", options.config.get("maya.view.engine"));
-    }
-
     _registerMiddlewares(options) {
-        const staticUrl = options.config.get("maya.server.staticUrl");
-        const staticRoot = path.join(options.appRoot, ".tmp/");
         const controllersDir = path.join(options.appRoot, "controller/");
+        const viewsDir = path.join(options.appRoot, "views/");
 
-        if (! staticUrl || staticUrl.length === 1 && staticUrl == "/") {
-            throw new Error("Config maya.server.staticUrl can not be empty and `/` only.");
-        }
-
-        if (staticUrl[0] !== "/") {
-            throw new Error("Config maya.server.staticUrl must be start with `/`.");
-        }
-
-        if (options.watch) {
-            // if `watch` option enabled
-            // inject reloader code into all `text/html` responses.
-            this._express.use(reloaderInjector());
-            this._sockets.use(ioWatchAssets());
-        }
-
-        this._express.use(attachParams(this));
-        this._express.use(staticUrl, express.static(staticRoot));
-        this._express.use(router(this.router));
-        this._express.use(serverError());
+        this.use(attachParams(this));
+        this.use(router(this.router));
     }
 
     async _listen(options) {
+        // Get request handlers
+        const handler = this._koa.callback();
+
         // Create server
         if (options.https) {
             this._server = https.createServer({
                 key : fs.readFileSync(options.https.key),
                 cert : fs.readFileSync(options.https.cert),
-            }, this._express);
+            }, handler);
         }
         else {
-            this._server = http.createServer(this._express);
+            this._server = http.createServer(handler);
         }
 
         // Attach socket.io to server
@@ -149,11 +129,14 @@ export default class Server {
 
         // Start server
         return new Promise((resolve, reject) => {
-            this._server.listen(options.port, resolve);
+            this._server.listen(options.port, (err) => {
+                if (err) reject(err);
+                resolve();
+            });
         });
     }
 
     use(...args) {
-        this._express.use(...args);
+        this._koa.use(...args);
     }
 }
