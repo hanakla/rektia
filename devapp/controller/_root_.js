@@ -1,49 +1,88 @@
-var Controller = require('../../').Controller;
+const Controller = require('../../').Controller;
 
 module.exports = Controller.create({
-    index(req, res) {
-        res.render("index");
+    // Normal
+
+    *index(ctx) {
+        // console.log("hi");
+        // console.log(ctx.render("index"));
+        yield ctx.render("index");
     },
 
-    *yield(req, res) {
+    // Session
+
+    *session(ctx) {
+        ctx.session.views = ctx.session.views || 0;
+        ctx.session.views++;
+
+        ctx.type = "text/html; charset=UTF-8";
+        ctx.body = `You are viewing this page ${ctx.session.views} times in current session!`;
+    },
+
+    // Yield
+
+    *yield(ctx) {
         const message = yield new Promise((resolve, reject) => {
             setTimeout(() => {
                 resolve("this message passed with yield* (*゜ᴗ ゜*)");
             }, 1000);
         });
 
-        res.type("text/html; charset=UTF-8");
-        res.end(message);
+        ctx.type ="text/html; charset=UTF-8";
+        ctx.body = message;
     },
 
-    "403"(req, res) {
-        throw new maya.NotAllowedException();
+    // File uploading
+
+    *upload(ctx) {
+        yield ctx.render("upload");
     },
 
-    error(req, res) {
+    post_upload(ctx) {
+        console.log(ctx.request, ctx.req);
+        console.log(ctx.request.body.files);
+        // req.file("file").upload(function (err, file) {
+        //     ctx.end(file.toString());
+        //     console.log(file);
+        // });
+    },
+
+    // Error raising
+
+    "403"(ctx) {
+        ctx.status = 403;
+    },
+
+    error(ctx) {
         throw new Error("Handled correctry?");
     },
 
-    socket(req, res) {
-        res.render("socket");
+    *socket(ctx) {
+        yield ctx.render("socket");
+        // maya.sockets.join
     },
 
-    json(req, res) {
-        res.json({"its": "response json"});
+    // Custom response
+
+    json(ctx) {
+        ctx.set({"Content-Type":  "application/json"});
+        ctx.body = {"its": "response json"};
+        // console.log(ctx.maya);
     },
 
-    plain(req, res) {
-        res.type("text/plain; charset=UTF-8").write("plain");
+    plain(ctx) {
+        ctx.type = "text/plain; charset=UTF-8";
+        ctx.body = "plain";
     },
 
-    _private(req, res) {
-        res
-            .type("text/html; charset=UTF-8")
-            .end("Correctry called private method via routes.js");
+    // Private method (not directly routed)
+
+    _private(ctx) {
+        ctx.type = "text/html; charset=UTF-8";
+        ctx.body =  "Correctry called private method via routes.js";
     },
 
-    lang(req, res) {
-        console.log(req.getLocale());
-        res.end();
+    lang(ctx) {
+        // console.log(req.getLocale());
     }
 });

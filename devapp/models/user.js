@@ -11,7 +11,7 @@ module.exports = Model.create({
     // (optional) Using connection name
     // if omitted, use "default" connection as default.
     // if you want to use other (not "default") connection for this model,
-    // set connection name to `connection`property.
+    // set connection name to `connection` property.
     // (connection's defined in config/env/<environment>/database)
     connection : "default",
 
@@ -41,6 +41,14 @@ module.exports = Model.create({
         "displayId" : {
             type : "string",
             size : 60,
-        }
+        },
+    },
+
+    validate() {
+        console.log("hi");
     }
+
+    // afterValidate() {
+    //     console.log("hi");
+    // },
 });

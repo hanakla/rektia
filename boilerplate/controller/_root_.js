@@ -1,7 +1,7 @@
-var Controller = require('maya').Controller;
+const Controller = require("maya").Controller;
 
 module.exports = Controller.create({
-    index(req, res) {
-        res.render("index");
+    *index(ctx) {
+        yield ctx.render("index");
     }
 });

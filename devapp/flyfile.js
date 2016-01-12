@@ -4,7 +4,8 @@ const source = {
     styles : "./static/styles/**/*.styl",
     css : "./static/styles/**/*.css",
     fonts : "./static/fonts/**/*",
-    images : "./static/images/**/*"
+    images : "./static/images/**/*",
+    html : "./static/**/*.html"
 };
 
 // Compiled assets must export to `app/.tmp/**`
@@ -14,7 +15,8 @@ const dest = {
     styles : "./.tmp/styles/",
     // css : "./.tmp/styles/",
     fonts : "./.tmp/fonts/",
-    images : "./.tmp/images/"
+    images : "./.tmp/images/",
+    html : "./.tmp/"
 }
 
 //
@@ -27,10 +29,11 @@ export async function devel() {
     await this.watch([source.css], ["clearStyleDest", "copyStyles"]);
     await this.watch([source.fonts], ["copyFonts"]);
     await this.watch([source.images], ["copyImages"]);
+    await this.watch([source.html], ["copyHtml"]);
 };
 
 export async function production() {
-    await this.start(["buildScripts", "buildStyles", "copyFonts", "copyImages"] , {
+    await this.start(["buildScripts", "buildStyles", "copyFonts", "copyImages", "copyHtml"] , {
         parallel : true
     });
 }
@@ -81,4 +84,9 @@ export async function copyImages() {
 
     await this.source(source.images)
         .target(dest.images);
+}
+
+export async function copyHtml() {
+    await this.source(source.html)
+        .target(dest.html);
 }
