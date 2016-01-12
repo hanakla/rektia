@@ -79,9 +79,10 @@ export default class RouteTree {
 
         const urlFragments = url.replace(/(^\/|\/$)/g, "")
             .split("/")
+            .filter(fragment => fragment !== "")
             .map(fragment => `/${fragment}`);
 
-        const candidateNodes = urlFragments.reduce((candidateNodes, currentFragment, idx, list) => {
+        const candidateNodes = urlFragments.reduce((candidateNodes, currentFragment) => {
             return this._findMatchNodes(candidateNodes, currentFragment);
         }, [this.tree]);
 
