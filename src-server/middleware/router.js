@@ -1,10 +1,11 @@
 export default function router(router) {
-    return (req, res, next) => {
+    return function* (next) {
         try {
-            router.handle(req, res, next);
+            yield router.handle(this);
+            return yield next;
         }
         catch (e) {
-            next(e);
+            throw e;
         }
     };
 }
