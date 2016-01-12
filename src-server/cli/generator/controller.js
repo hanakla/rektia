@@ -8,7 +8,18 @@ const ES2015_TEMPLATE =
 
 module.exports = Controller.create({<% methods.forEach(function (methodName, idx, list) { %>
 \t<%= (idx !== 0 ? "\\n\\t" : "") %>
-\t<%= methodName %>(req, res) {
+\t<%= methodName %>(ctx) {
+\t\t
+\t}<%= idx !== (list.length - 1) ? "," : "" %><% }); %>
+});`;
+
+const ES2015_REST_TEMPLATE =
+`const RestController = require("maya").RestController;
+
+module.exports = RestController.create({<% methods.forEach(function (methodName, idx, list) { %>
+\t_model : "<%= modelName %>",
+\t<%= (idx !== 0 ? "\\n\\t" : "") %>
+\t<%= methodName %>(ctx) {
 \t\t
 \t}<%= idx !== (list.length - 1) ? "," : "" %><% }); %>
 });`;
@@ -33,6 +44,13 @@ function parseArgs(argv) {
         .alias("force", "f")
         .default("f", false)
         .describe("f", "Overwrite files to even exist")
+
+        .boolean("rest")
+        .default("rest", false)
+        .describe("rest", "Create REST Controller. (Must specify with `--model` option.)")
+
+        .string("model")
+        .describe("model", "Specify assigned model for REST Controller.")
 
         .boolean("help")
         .alias("help", "h")
@@ -65,7 +83,7 @@ module.exports = (argv) => {
     const exportPath = path.join(controllerDir, `${controllerName}.js`);
 
     const indent = options.indent === "tab" ? "\t" : " ".repeat(parseInt(options.indent, 10));
-    const template = _.template(ES2015_TEMPLATE);
+    const template = options.rest ? _.template(ES2015_REST_TEMPLATE) : _.template(ES2015_TEMPLATE);
 
     const methods = methodDefinitions.map((methodDef) => {
         var [httpMethod, name] = methodDef.split(":");
@@ -81,7 +99,10 @@ module.exports = (argv) => {
         return httpMethod + name;
     });
 
-    const content = template({methods}).replace(/\t/gm, indent);
+    const content = template({
+        methods,
+        modelName : options.model,
+    }).replace(/\t/gm, indent);
 
     // Check exists, if -f switch not taked.
     if (options.force === false && fs.existsSync(exportPath)) {
