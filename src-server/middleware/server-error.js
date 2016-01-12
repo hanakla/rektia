@@ -1,46 +1,55 @@
-import * as prettyLog from "../utils/pretty-log"
-import jade from "jade"
+import * as prettyLog from "../utils/pretty-log";
+import jade from "jade";
 
 import NotAllowedException from "../exception/not-allowed";
 import NotFoundException from "../exception/notfound";
 
-const VIEW_403 = __dirname + "/../views/403.jade";
-const VIEW_404 = __dirname + "/../views/404.jade";
+const VIEW_GENERAL = __dirname + "/../views/general-error.jade";
 const VIEW_500 = __dirname + "/../views/500.jade";
 
 export default function errorHandler() {
-    return (err, req, res, next) => {
-        var template, statusCode;
+    return function* (next) {
+        var err;
 
-        if (err instanceof NotAllowedException) {
-            statusCode = 404;
-            template = jade.compileFile(VIEW_403);
-        }
-        else if (err instanceof NotFoundException) {
-            statusCode = 404;
-            template = jade.compileFile(VIEW_404);
-        }
-        else {
-            statusCode = 500;
-            template = jade.compileFile(VIEW_500);
-            prettyLog.error("Internal server error", err);
+        try {
+            yield next;
+        } catch (e) {
+            err = e;
         }
 
-        var lines = err.stack.split("\n");
-
-        if (res.finished === false) {
-            res.status(statusCode)
-                .contentType("text/html; charset=UTF-8")
-                .send(template({
-                    error: {
-                        title : lines.shift(),
-                        stack : lines.map((item) => item.replace(/^[\s\t]+/g, ""))
-                    }
-                }));
-
-            res.end();
+        if (this.status === 403) {
+            this.type = "text/html; charset=UTF-8";
+            this.body = jade.compileFile(VIEW_GENERAL)({
+                title: "403 Forbidden",
+                message: "Forbidden",
+            });
         }
 
-        next();
+        if (this.status === 404) {
+            this.type = "text/html; charset=UTF-8";
+            this.body = jade.compileFile(VIEW_GENERAL)({
+                title: "404 Not Found",
+                message: "Your requested resource moved or removed."
+            });
+        }
+
+        if (err) {
+            this.type = "text/html; charset=UTF-8";
+            this.status = 500;
+
+            // prettyLog.error("Internal server error", err);
+
+            let lines = err.stack.split("\n");
+            let title = lines.shift();
+            this.body = jade.compileFile(VIEW_500)({
+                title : "500 // Internal Server Error",
+                error: {
+                    title : title,
+                    stack : lines.map((item) => item.replace(/^[\s\t]+/g, ""))
+                }
+            });
+        }
+
+        return yield next;
     };
 };

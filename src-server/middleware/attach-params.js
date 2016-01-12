@@ -1,8 +1,7 @@
 // Attach req to view via res.locals
-export default function attachParams(app) {
-    return (req, res, next) => {
-        req.maya = app;
-        res.locals.req = req;
-        next();
+export default function attachParams() {
+    return function* (next) {
+        this.maya = global.maya;
+        yield next;
     };
 }
