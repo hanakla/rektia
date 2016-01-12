@@ -4,7 +4,7 @@ module.exports = {
     context : __dirname + "/../static/scripts/",
 
     output : {
-        path : __dirname + "/../.tmp/scripts/",
+        path : __dirname + "/../.tmp/static/scripts/",
         filename : "[name].js",
     },
 

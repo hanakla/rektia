@@ -1,15 +1,11 @@
-import Router from "../router"
-
-export default function router(swapper, options) {
-    var router = new Router(swapper, options);
-    router.load(options.routes);
-
-    return (req, res, next) => {
+export default function router(router) {
+    return function* (next) {
         try {
-            router.handle(req, res, next);
+            yield router.handle(this);
+            return yield next;
         }
         catch (e) {
-            next(e);
+            throw e;
         }
     };
 }

@@ -5,6 +5,7 @@ import RestController from "./rest-controller";
 import Model from "./model";
 import Router from "./router";
 import Swappable from "./swappable";
+import InMemorySessionStore from "./in-memory-session-store";
 import {NotAllowedException} from "./exception/not-allowed"
 
 export {
@@ -15,5 +16,6 @@ export {
     Model,
     Router,
     Swappable,
+    InMemorySessionStore,
     NotAllowedException,
 };

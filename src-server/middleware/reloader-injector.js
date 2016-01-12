@@ -55,6 +55,11 @@ export default function reloaderInjector() {
 
         // Override res.end
         res.end = function (chunk, encoding) {
+            if (! chunk) {
+                end.call(this, chunk, encoding);
+                return;
+            }
+
             const contentType = this.get("content-type");
 
             // if response finished or content-type isn't "text/html"

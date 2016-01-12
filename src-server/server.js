@@ -4,11 +4,12 @@ import http from "http";
 import https from "https";
 
 import _ from "lodash";
-import express from "express";
+import koa from "koa";
 import socketio from "socket.io";
 
+import Router from "./router"
+
 // Middleware
-import bodyParser from "body-parser";
 import attachParams from "./middleware/attach-params"
 import serverError from "./middleware/server-error";
 import router from "./middleware/router";
@@ -18,33 +19,33 @@ import ioWatchAssets from "./middleware/io-watch-assets";
 export default class Server {
     /**
      * @private
-     * @property {Object} options
+     * @property {express.Application} _express
      */
-    // options;
+    // _express = null;
 
     /**
      * @private
-     * @property {express.Application} _express
+     * @property {express.Application} _swapper
      */
-    // _express;
+    // _swapper = null;
 
     /**
      * @property {socketio.Server} _sockets
      */
-    // _sockets
+    // _sockets = null;
 
     /**
      * @private
-     * @property {http.Server} _server
+     * @property {http.Server|https.Server} _server
      */
-    // _server
+    // _server = null;
 
 
     /**
      * @private
      * @property {Router} router
      */
-    // router;
+    // router = null;
 
     /**
      * @class Server
@@ -52,12 +53,17 @@ export default class Server {
      * @param {Object} options
      * @param {ModuleSwapper} options.swapper
      * @param {Logger} options.logger
+     * @param {Object} options.routes
+     * @param {Logger} options.logger
      */
     constructor(options) {
         this._swapper = options.swapper;
         this._logger = options.logger;
-        this._express = express();
+        this._koa = koa();
         this._sockets = socketio();
+        this.router = new Router(this._swapper, {logger: this._logger});
+
+        this.use(serverError());
     }
 
     /**
@@ -74,20 +80,19 @@ export default class Server {
      * @param {ConfigLoader} options.config
      * @param {String} options.appRoot Application running path
      * @param {Object|Boolean} options.https HTTPS options
-     * @param {Object|Boolean} options.https.key path to SSL key
-     * @param {Object|Boolean} options.https.cert path to SSL cert
+     * @param {String} options.https.key path to SSL key
+     * @param {String} options.https.cert path to SSL cert
      * @param {Number} options.port Listening port number
      * @param {Object} options.routes route definition object
      * @param {Boolean} options.watch if true, enable watch for Controller, Model, View
      */
     async start(options) {
         try {
-            this._setExpressConfig(options);
-
-            // Assumption register all middlewares before listen()
             this._registerMiddlewares(options);
-
-
+            this.router.load({
+                routes  : options.routes,
+                controllerDir  : path.join(options.appRoot, "controller/")
+            });
             await this._listen(options);
         }
         catch (e) {
@@ -96,46 +101,27 @@ export default class Server {
         }
     }
 
-    _setExpressConfig(options) {
-        this._express.set("views", path.join(options.appRoot, "views/"));
-        this._express.set("view engine", options.config.get("maya.view.engine"));
-    }
-
     _registerMiddlewares(options) {
-        const staticRoot = path.join(options.appRoot, ".tmp/");
         const controllersDir = path.join(options.appRoot, "controller/");
+        const viewsDir = path.join(options.appRoot, "views/");
 
-        if (options.watch) {
-            // if `watch` option enabled
-            // inject reloader code into all `text/html` responses.
-            this._express.use(reloaderInjector());
-            this._sockets.use(ioWatchAssets());
-        }
-
-        this._express.use(express.static(staticRoot));
-
-        this._express.use(bodyParser());
-        this._express.use(attachParams(this));
-
-        this._express.use(router(this._swapper, {
-            watch   : options.watch,
-            routes  : options.routes,
-            controllerDir  : controllersDir
-        }));
-
-        this._express.use(serverError());
+        this.use(attachParams(this));
+        this.use(router(this.router));
     }
 
     async _listen(options) {
+        // Get request handlers
+        const handler = this._koa.callback();
+
         // Create server
         if (options.https) {
             this._server = https.createServer({
                 key : fs.readFileSync(options.https.key),
                 cert : fs.readFileSync(options.https.cert),
-            }, this._express);
+            }, handler);
         }
         else {
-            this._server = http.createServer(this._express);
+            this._server = http.createServer(handler);
         }
 
         // Attach socket.io to server
@@ -143,11 +129,14 @@ export default class Server {
 
         // Start server
         return new Promise((resolve, reject) => {
-            this._server.listen(options.port, resolve);
+            this._server.listen(options.port, (err) => {
+                if (err) reject(err);
+                resolve();
+            });
         });
     }
 
     use(...args) {
-        this._express.use(...args);
+        this._koa.use(...args);
     }
 }

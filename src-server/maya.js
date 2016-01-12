@@ -1,16 +1,16 @@
 import _ from "lodash";
+import fs from "fs";
 import path from "path";
 import Waterline from "waterline";
 import yargs from "yargs";
+import co from "co";
 
 import Logger from "./logger";
 import FileWatcher from "./file-watcher";
 import ModuleSwapper from "./module-swapper";
-import ConfigLoader from "./loader/config-loader"
+import ConfigLoader from "./loader/config-loader";
 import ModelLoader from "./loader/model-loader";
 import Server from "./server";
-
-import handleAsync from "./utils/handle-async";
 
 const VERSION = require(path.join(__dirname, "../package.json")).version;
 
@@ -28,31 +28,36 @@ export default class Maya {
      * @return {Object}
      */
     static parseArgs(argv) {
-        const args = yargs
-        .string("port")
-        .default("port", 3000)
-        .describe("port", "Listening port number. (It's overrides configured port number)")
+        const parser = yargs()
+            .boolean("interactive")
+            .alias("interactive", "i")
+            .describe("i", "Run with REPL")
 
-        .boolean("no-watch")
-        .alias("w", "no-watch")
-        .describe("no-watch", "No watching Model, View, Controller changing.")
+            .string("port")
+            .describe("port", "Listening port number. (It's overrides configured port number)")
 
-        .string("env")
-        .default("env", "devel")
-        .describe("env", "Specify running environment (production, devel, test).")
+            .boolean("no-watch")
+            .describe("no-watch", "No watching Model, View, Controller changing.")
 
-        .help("help")
-        .alias("h", "help")
+            .string("env")
+            .default("env", "devel")
+            .describe("env", "Specify running environment (production, devel, test).")
 
-        .parse(argv);
+            .help("help")
+            .alias("help", "h")
+
+            .strict();
+
+        const args = parser.parse(argv);
 
         var watch = ! args.w;
-        if (args.env === Maya.ENV_DEVEL && args.w == null) {
+        if (args.w == null && args.env === Maya.ENV_DEVEL) {
             watch = true;
         }
 
         return {
-            port    : args.port,
+            interactive : args.interactive,
+            port    : args.port != null ? parseInt(args.port, 10) : null,
             watch   : watch,
             env     : args.env
         };
@@ -85,6 +90,10 @@ export default class Maya {
 
     /**
      * @property {Waterline} waterline
+     */
+
+    /**
+     * @property {String} keys
      */
 
 
@@ -127,9 +136,14 @@ export default class Maya {
             env         : this._options.env
         });
 
+        // Load configs
+        this.config.load({watch: this._options.watch});
+
         // Model loader
         this._modelLoader = new ModelLoader(this.swapper, {
+            logger : this.logger,
             modelDir : path.join(this._options.appRoot, "models/"),
+            modelLogicsDir : path.join(this._options.appRoot, "logics/model-logic/"),
         });
 
         // database connector
@@ -141,6 +155,11 @@ export default class Maya {
             logger : this.logger
         });
 
+        Object.defineProperty(this, "keys", {
+            set : value => this.server._koa.keys = value,
+            get : () => this.server._koa.keys
+        })
+
         global.maya = this;
     }
 
@@ -150,9 +169,6 @@ export default class Maya {
      */
     async start() {
         try {
-            // Load configs
-            this.config.load({watch: this._options.watch});
-
             // set log level
             this.logger.setLogLevel(this.config.get("maya.log.level"));
             this.logger.resume();
@@ -165,7 +181,7 @@ export default class Maya {
 
             // Run build script (`app/build.js`)
             this.logger.info("App#start", "Waiting for build...");
-            // await this._buildScripts();
+            await this._buildScripts();
             this.logger.info("App#start", "End build");
 
             // get socket.io host object
@@ -186,7 +202,7 @@ export default class Maya {
             await this.server.start({
                 config  : this.config,
                 appRoot : this._options.appRoot,
-                port    :  listeningPort,
+                port    : listeningPort,
                 routes  : this.config.get("routes"),
                 watch   : this._options.watch
             });
@@ -214,7 +230,7 @@ export default class Maya {
         const builder = this.swapper.require(buildScript, require);
         const returns = builder(this._options.env);
 
-        await handleAsync(returns);
+        await co(returns);
     }
 
     _startAssetsWatching() {
@@ -222,6 +238,10 @@ export default class Maya {
         const stylesDir = path.join(staticDir, "styles/");
         const controllersDir = path.join(this._options.appRoot, "controller/");
         const viewsDir = path.join(this._options.appRoot, "views/");
+
+        if (! fs.existsSync(staticDir)) {
+            fs.mkdirSync(staticDir);
+        }
 
         // Request swapping links
         const swap = _.debounce((type, fileUrl) => {
