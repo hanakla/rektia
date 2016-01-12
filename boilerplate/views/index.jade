@@ -127,9 +127,17 @@ html(lang="en")
                 !function () {
                     var header = document.querySelector("#scrolling-header");
                     var main = document.querySelector("main");
+                    var body = document.body;
+                    var html = document.documentElement;
+                    var requestId;
 
-                    window.addEventListener("scroll", function (e) {
-                        header.style.top = -(document.body.scrollTop * .7) + "px";
-                        main.style.top = -(document.body.scrollTop * .5) + "px";
+                    window.addEventListener("scroll", function(e) {
+                        if (requestId != null) cancelAnimationFrame(requestId);
+
+                        requestId = requestAnimationFrame(function () {
+                            header.style.top = -((body.scrollTop > html.scrollTop ? body.scrollTop : html.scrollTop) * .7) + "px";
+                            main.style.top = -((body.scrollTop > html.scrollTop ? body.scrollTop : html.scrollTop) * .5) + "px";
+                            requestId = null;
+                        });
                     }, false);
                 }();
