@@ -23,8 +23,4 @@ module.exports = {
         // },
         https : false,
     },
-
-    view : {
-        engine : "jade"
-    }
 };
