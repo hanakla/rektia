@@ -3,8 +3,8 @@ import SocketIONamespace from "./namespace";
 export default class SocketIOServer {
     constructor(io) {
         this._io = io;
-        this._sockets = this.of("/");
         this._nsps = Object.create(null);
+        this._sockets = this.of("/");
     }
 
 
