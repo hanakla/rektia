@@ -43,10 +43,27 @@ export function* babelBrowser() {
         .source("src-browser/**/*.js")
         .babel({
             presets : [
-                "es2015",
                 "stage-3"
             ],
             plugins : [
+                "transform-es2015-arrow-functions",
+                "transform-es2015-block-scoped-functions",
+                "transform-es2015-block-scoping",
+                "transform-es2015-classes",
+                "transform-es2015-computed-properties",
+                "transform-es2015-destructuring",
+                "transform-es2015-for-of",
+                "transform-es2015-function-name",
+                "transform-es2015-literals",
+                "transform-es2015-modules-commonjs",
+                "transform-es2015-object-super",
+                "transform-es2015-parameters",
+                "transform-es2015-shorthand-properties",
+                "transform-es2015-spread",
+                "transform-es2015-sticky-regex",
+                "transform-es2015-template-literals",
+                "transform-es2015-typeof-symbol",
+                "transform-es2015-unicode-regex",
                 "add-module-exports"
             ]
         })
@@ -80,10 +97,27 @@ export function* babelServer() {
         .source("src-server/**/*.js")
         .babel({
             presets : [
-                "es2015",
-                "stage-3"
+                "stage-3",
             ],
             plugins : [
+                "transform-es2015-arrow-functions",
+                "transform-es2015-block-scoped-functions",
+                "transform-es2015-block-scoping",
+                "transform-es2015-classes",
+                "transform-es2015-computed-properties",
+                "transform-es2015-destructuring",
+                "transform-es2015-for-of",
+                "transform-es2015-function-name",
+                "transform-es2015-literals",
+                "transform-es2015-modules-commonjs",
+                "transform-es2015-object-super",
+                "transform-es2015-parameters",
+                "transform-es2015-shorthand-properties",
+                "transform-es2015-spread",
+                "transform-es2015-sticky-regex",
+                "transform-es2015-template-literals",
+                "transform-es2015-typeof-symbol",
+                "transform-es2015-unicode-regex",
                 "add-module-exports"
             ]
         })
