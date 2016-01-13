@@ -26,9 +26,6 @@ export default class Namespace {
         this._socket.on("connection", onConnection);
     }
 
-    dispose() {
-        this._emitter.dispose();
-    }
 
 
     get rawNamespace() {
