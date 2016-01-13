@@ -6,26 +6,19 @@ export default class Namespace {
     constructor(nsp) {
         this._emitter = new Emitter();
         this._nsp = nsp;
-    }
 
-    _handleConnection(socket) {
-        this._emitter.on("connect", socket => {
-            const wrappedSocket = new SocketIOSocket(wrappedSocket);
-            this._emitter.emit("connect", wrappedSocket);
-            this._emitter.emit("connection", wrappedSocket);
-        });
+        this._handleEvents();
     }
 
     _handleEvents() {
         const onConnect = socket => {
-            const wrappedSocket = new SocketIOSocket(wrappedSocket);
-            this._emitter.emit("connect", this);
-        };;
+            const wrappedSocket = new SocketIOSocket(socket);
+            this._emitter.emit("connect", wrappedSocket);
+            this._emitter.emit("connection", wrappedSocket);
+        };
 
-        this._socket.on("connect", onConnect);
-        this._socket.on("connection", onConnection);
+        this._nsp.on("connect", onConnect);
     }
-
 
 
     get rawNamespace() {
