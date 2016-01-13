@@ -90,7 +90,7 @@ export default class DisposableEmitter {
             if (
                 (entry.listener !== fn)
                 || (entry.once !== once)
-                || (context === entry.context)
+                || (context !== entry.context)
             ) {
                 newListeners.push(entry);
             }
