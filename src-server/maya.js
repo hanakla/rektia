@@ -152,7 +152,8 @@ export default class Maya {
         // express instance handler
         this.server = new Server({
             swapper : this.swapper,
-            logger : this.logger
+            logger : this.logger,
+            browserSync : options.env === Maya.ENV_DEVEL && options.watch
         });
 
         Object.defineProperty(this, "keys", {
@@ -255,13 +256,7 @@ export default class Maya {
 
         // watch static assets
         this.watcher.watch(staticDir, (event, file) => {
-            if (/^styles\/.+/.test(file)) {
-                // if css file updated
-                swap("css", `/${file}`);
-            }
-            else {
-                reload();
-            }
+            this.server.requestReload(file);
         });
 
         // watch controllers changes
