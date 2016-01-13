@@ -72,6 +72,15 @@ export default class Namespace {
     }
 
 
+    on(event, handler, thisArg = null) {
+        return this._emitter.on(event, handler, thisArg || this);
+    }
+
+    off(event, handler, thisArg = null) {
+        return this._emitter.off(event, handler, thisArg || this);
+    }
+
+
     receive(event, handler) {
         this._nsp.on(event, handler);
         return this;
