@@ -78,7 +78,7 @@ export default class SocketIOSocket {
     }
 
 
-    receive(name, handler) {
+    receive(event, handler) {
         this._socket.on(event, handler);
         return this;
     }
