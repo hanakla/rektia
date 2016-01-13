@@ -2,7 +2,10 @@ doctype html
 html(lang="en")
 head
     meta(charset="UTF-8")
-    title Socket.io
+    title Chat example
 
-    script(src="/scripts/socket.js")
+    script(src="/static/scripts/socket.js")
+    link(rel="stylesheet", href="/static/styles/socket.css")
 body
+    input#messageInput(type="text" placeholder="Put message")
+    ul#messageList
