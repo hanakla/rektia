@@ -9,6 +9,7 @@ import socketio from "socket.io";
 import browserSync from "browser-sync";
 
 import Router from "./router"
+import SocketIOServer from "./socket.io-wrapper/server";
 
 // Middleware
 import attachParams from "./middleware/attach-params"
@@ -59,7 +60,7 @@ export default class Server {
         this._swapper = options.swapper;
         this._logger = options.logger;
         this._koa = koa();
-        this._sockets = socketio();
+        this._sockets = new SocketIOServer(socketio());
         this.router = new Router(this._swapper, {logger: this._logger});
 
         if (options.browserSync) {
@@ -123,18 +124,21 @@ export default class Server {
     async _listen(options) {
         // Get request handlers
         const handler = this._koa.callback();
-        const serverPort = this._browserSync ? options.port + 1 : options.port;
+        const serverPort = this._browserSync ? options.port + 2 : options.port;
 
         if (this._browserSync) {
             this._browserSync.init({
                 port : options.port,
                 proxy : {
                     target : `localhost:${serverPort}`,
-                    ws : true
+                    ws : true,
                 },
                 https : !! options.https,
                 notify : false,
                 open : false,
+                ui : {
+                    port : options.port + 1,
+                }
             });
         }
 

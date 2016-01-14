@@ -4,12 +4,12 @@ module.exports = Controller.create({
     // initialize & destruction
 
     _init() {
-        maya.sockets.on("connect", this._onConnect);
+        maya.io.on("connect", this._onConnect, this);
     },
 
     _dispose() {
-        // console.log(maya.sockets);
-        // maya.sockets.engine.removeListener("connect", this._onConnect);
+        // console.log(maya.io);
+        maya.io.off("connect", this._onConnect, this);
     },
 
     // Socket event handlers
@@ -18,8 +18,8 @@ module.exports = Controller.create({
         console.log("socket connected");
         socket.join("rabbit-house");
 
-        socket.on("message", body => {
-            maya.sockets.to("rabbit-house").emit("receive-message", {
+        socket.receive("message", body => {
+            maya.io.to("rabbit-house").emit("receive-message", {
                 user : socket.id,
                 body : body.message
             });
@@ -30,6 +30,5 @@ module.exports = Controller.create({
 
     *index(ctx) {
         yield ctx.render("socket");
-        // maya.sockets.join
     },
 });
