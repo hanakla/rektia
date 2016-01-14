@@ -51,9 +51,25 @@ export default class ModuleSwapper {
 
         if (! this.isSwappableModuleCache(cache)) { return; }
 
-        cache.exports._dispose();
-        delete require.cache[fullPath];
-        require(fullPath);
+        var oldCache = cache;
+
+        try {
+            oldCache.exports._dispose();
+            oldCache = null;
+        }
+        catch (e) {
+            throw new Error(`Module swapping failed for '${fullPath}' in disposing. (${e.message})`);
+        }
+
+        try {
+            delete require.cache[fullPath];
+            require(fullPath);
+        }
+        catch (e) {
+            // restore old module.exports
+            delete require.cache[fullPath];
+            throw new Error(`Module swapping failed for '${fullPath}'. (${e.message})`);
+        }
 
         this.logger.info("ModuleSwapper", "swapped module %s", fullPath);
     }
@@ -77,9 +93,14 @@ export default class ModuleSwapper {
             //     //    this.watcher[filename] = this.watcher[fullPath];
             //        break;
 
-               case "change":
-                   this.swapModule(fullPath);
-                   break;
+                case "change":
+                    try {
+                        this.swapModule(fullPath);
+                        break;
+                    }
+                    catch (e) {
+                        this.logger.error("ModuleSwapper#swapModule", e.stack);
+                    }
            }
        });
     }
