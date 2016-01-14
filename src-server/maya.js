@@ -186,7 +186,7 @@ export default class Maya {
             this.logger.info("App#start", "End build");
 
             // get socket.io host object
-            this.sockets = this.server.getSocketIo();
+            this.io = this.server.getSocketIo();
 
             // if watch option enabled, start chnages watching.
             if (this._options.watch) {
