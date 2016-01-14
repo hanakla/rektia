@@ -1,5 +1,5 @@
 import {CompositeDisposable} from "event-kit";
-import Emitter from "../utils/emitter";
+import Emitter from "../../utils/emitter";
 
 export default class SocketIOSocket {
     constructor(socket) {

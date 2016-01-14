@@ -1,5 +1,5 @@
 import {Disposable} from "event-kit";
-import Emitter from "../utils/emitter";
+import Emitter from "../../utils/emitter";
 import SocketIOSocket from "./socket";
 
 export default class Namespace {

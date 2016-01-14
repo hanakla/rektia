@@ -9,7 +9,7 @@ import socketio from "socket.io";
 import browserSync from "browser-sync";
 
 import Router from "./router"
-import SocketIOServer from "./socket.io-wrapper/server";
+import SocketIOServer from "./socket.io-wrapper/server/server";
 
 // Middleware
 import attachParams from "./middleware/attach-params"

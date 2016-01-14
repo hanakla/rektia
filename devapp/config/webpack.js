@@ -26,7 +26,8 @@ module.exports = {
 
         alias : {
             "views" : __dirname + "/../views/",
-            "socket.io" : "socket.io-client"
+            "socket.io" : "socket.io-client",
+            "maya.io" : "maya/lib/socket.io-wrapper/client/index.js"
         },
 
         module : {
