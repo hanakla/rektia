@@ -124,18 +124,21 @@ export default class Server {
     async _listen(options) {
         // Get request handlers
         const handler = this._koa.callback();
-        const serverPort = this._browserSync ? options.port + 1 : options.port;
+        const serverPort = this._browserSync ? options.port + 2 : options.port;
 
         if (this._browserSync) {
             this._browserSync.init({
                 port : options.port,
                 proxy : {
                     target : `localhost:${serverPort}`,
-                    ws : true
+                    ws : true,
                 },
                 https : !! options.https,
                 notify : false,
                 open : false,
+                ui : {
+                    port : options.port + 1,
+                }
             });
         }
 
