@@ -1,4 +1,6 @@
 const _ = require("lodash");
+const io = require("maya.io");
+const socket = io.connect();
 
 const messageTemplate = _.template(`
     <small class="message-says"><%= message.user %></small>
@@ -6,9 +8,6 @@ const messageTemplate = _.template(`
 `);
 
 window.addEventListener("DOMContentLoaded", function () {
-    const io = require("socket.io");
-    const socket = io.connect();
-
     const messageList = document.getElementById("messageList");
     const messageInput = document.getElementById("messageInput");
 
@@ -21,7 +20,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
         messageInput.addEventListener("keydown", e => {
             if (e.keyCode === 13 /* Enter */)  {
-                socket.emit("message", {message: messageInput.value});
+                socket.push("message", {message: messageInput.value});
                 messageInput.value = "";
             }
         });
