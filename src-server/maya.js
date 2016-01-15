@@ -208,7 +208,7 @@ export default class Maya {
                 watch   : this._options.watch
             });
 
-            this.logger.info("Server", `<maya.js start on port ${listeningPort} in ${this._options.env} environment.>`);
+            this.logger.info("Server", `<maya.js start on port \u001b[1m${listeningPort}\u001b[m in \u001b[34m${this._options.env} environment.\u001b[m>`);
         }
         catch (e) {
             this.logger.error("App#start", `${e.message}\n${e.stack}`);
