@@ -136,6 +136,7 @@ export default class Server {
                 https : !! options.https,
                 notify : false,
                 open : false,
+                logLevel : "silent",
                 ui : {
                     port : options.port + 1,
                 }
