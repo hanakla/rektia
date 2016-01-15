@@ -225,7 +225,7 @@ export default class Maya {
     }
 
     async _buildScripts() {
-        this.logger.info("App Builder", "Run build.js");
+        this.logger.verbose("App#_buildScripts", "Run build.js");
 
         const buildScript = path.join(this._options.appRoot, "build.js");
         const builder = this.swapper.require(buildScript, require);
