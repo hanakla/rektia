@@ -71,7 +71,7 @@ export default class ModuleSwapper {
             throw new Error(`Module swapping failed for '${fullPath}'. (${e.message})`);
         }
 
-        this.logger.info("ModuleSwapper", "swapped module %s", fullPath);
+        this.logger.verbose("ModuleSwapper", "swapped module %s", fullPath);
     }
 
     isSwappableModuleCache(cache) {
@@ -84,7 +84,7 @@ export default class ModuleSwapper {
     registerWatcher(fullPath) {
         if (this.watcher[fullPath]) { return; }
 
-        this.logger.verbose("ModuleSwapper", "start watching : %s", fullPath);
+        this.logger.silly("ModuleSwapper", "start watching : %s", fullPath);
 
         this.watcher[fullPath] = fs.watch(fullPath, (event, filename) => {
             switch (event) {
