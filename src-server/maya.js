@@ -175,7 +175,7 @@ export default class Maya {
             this.logger.resume();
 
             // Load model definitions
-            this._modelLoader.load({watch: this._options.watch});
+            this._modelLoader.load();
 
             // Link models to waterline and expose models
             this.models = await this._modelLoader.setupModels(this.waterline, this.config.get("database"));
