@@ -239,30 +239,52 @@ export default class Maya {
         const stylesDir = path.join(staticDir, "styles/");
         const controllersDir = path.join(this._options.appRoot, "controller/");
         const viewsDir = path.join(this._options.appRoot, "views/");
+        const modelsDir = path.join(this._options.appRoot, "models");
+
+        const logReloading = (type) => {
+            this.logger.info("App#watch", `${type} changes detected.`);
+        };
 
         if (! fs.existsSync(staticDir)) {
             fs.mkdirSync(staticDir);
         }
 
-        // Request swapping links
-        const swap = _.debounce((type, fileUrl) => {
-            this.sockets.to("__maya__").emit("__maya__.swap", {fileType: "css", fileUrl});
-        }, 500, { maxWait: 5000});
-
-        // Request page reloading
-        const reload = _.debounce((file) => {
-            this.sockets.to("__maya__").emit("__maya__.reload");
-        }, 500, { maxWait: 5000});
-
         // watch static assets
-        this.watcher.watch(staticDir, (event, file) => {
+        this.watcher.watch(staticDir, _.throttle((event, file) => {
+            logReloading("\u001b[1mStatic Assets\u001b[m");
             this.server.requestReload(file);
-        });
+        }, 2000));
 
         // watch controllers changes
-        this.watcher.watch(controllersDir, reload);
+        this.watcher.watch(controllersDir, _.throttle(() => {
+            logReloading("\u001b[1mController\u001b[m");
+            this.server.requestReload();
+        }, 2000));
 
         // watch view changes
-        this.watcher.watch(viewsDir, reload);
+        this.watcher.watch(viewsDir, _.throttle(() => {
+            logReloading("\u001b[1mView\u001b[m");
+            this.server.requestReload();
+        }, 2000));
+
+        // watch model changes
+        this.watcher.watch(modelsDir, _.throttle((async function () {
+            logReloading("\u001b[1mModel\u001b[m");
+
+            try {
+                // teardown old models
+                this.models = null;
+                await new Promise(resolve => this.waterline.teardown(resolve))
+                this.waterline = null;
+
+                // reload models
+                this.waterline = new Waterline();
+                this.models = await this._modelLoader.reload(this.waterline, this.config.get("database"));
+                this.server.requestReload();
+            }
+            catch (e) {
+                this.logger.error(`Model reloading error (${e.message})`);
+            }
+        }).bind(this), 2000));
     }
 }

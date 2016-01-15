@@ -84,6 +84,12 @@ export default class ModelLoader {
         });
     }
 
+    async reload(waterline, options) {
+        this._modelInfos = {};
+        this.load();
+        return this.setupModels(waterline, options);
+    }
+
     /**
      * Set models into Waterline
      * @param {Waterline} waterline
