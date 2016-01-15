@@ -36,7 +36,7 @@ RestController.create = proto => {
 
 
 RestController.prototype = _.extend(Object.create(Controller), {
-    _init() {
+    _before() {
         this.model = deep.get(maya.models, this._model);
     },
 
