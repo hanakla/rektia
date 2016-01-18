@@ -77,18 +77,18 @@ RestController.prototype = _.extend(Object.create(Controller), {
     },
 
     *_get(ctx) {
-        ctx.body = yield this.model.find(req.params.id)[0];
+        ctx.body = yield this.model.find(ctx.params.id)[0];
     },
 
     *_post(ctx) {
-        ctx.body = yield this.model.create(req.body)[0];
+        ctx.body = yield this.model.create(ctx.body)[0];
     },
 
     *_delete(ctx) {
-        ctx.body = yield this.model.destroy(req.params.id)[0];
+        ctx.body = yield this.model.destroy(ctx.params.id)[0];
     },
 
     *_put(ctx) {
-        ctx.body = yield this.model.update(req.params.id, req.body)[0];
+        ctx.body = yield this.model.update(ctx.params.id, ctx.body)[0];
     }
 });
