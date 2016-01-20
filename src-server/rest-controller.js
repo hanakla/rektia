@@ -55,7 +55,7 @@ RestController.prototype = _.extend(Object.create(Controller), {
     },
 
     "post_index"(ctx) {
-        return this._post(ctx);
+        return this._create(ctx);
     },
 
     "delete_:id"(ctx) {
@@ -63,11 +63,11 @@ RestController.prototype = _.extend(Object.create(Controller), {
     },
 
     "put_:id"(ctx) {
-        return this._put(ctx);
+        return this._update(ctx);
     },
 
     "patch_:id"(ctx) {
-        return this._put(ctx);
+        return this._update(ctx);
     },
 
     // Real handlers
@@ -80,7 +80,7 @@ RestController.prototype = _.extend(Object.create(Controller), {
         ctx.body = yield this.model.find(ctx.params.id)[0];
     },
 
-    *_post(ctx) {
+    *_create(ctx) {
         ctx.body = yield this.model.create(ctx.body)[0];
     },
 
@@ -88,7 +88,7 @@ RestController.prototype = _.extend(Object.create(Controller), {
         ctx.body = yield this.model.destroy(ctx.params.id)[0];
     },
 
-    *_put(ctx) {
+    *_update(ctx) {
         ctx.body = yield this.model.update(ctx.params.id, ctx.body)[0];
     }
 });
