@@ -254,11 +254,15 @@ export default class Maya {
     }
 
     _startAssetsWatching() {
-        const staticDir = path.join(this._options.appRoot, ".tmp/");
-        const stylesDir = path.join(staticDir, "styles/");
-        const controllersDir = path.join(this._options.appRoot, "controller/");
-        const viewsDir = path.join(this._options.appRoot, "views/");
-        const modelsDir = path.join(this._options.appRoot, "models");
+        const waitMs = 2000;
+        const appRoot = this._options.appRoot;
+
+        const staticDir = path.join(appRoot, ".tmp/");
+        const controllersDir = path.join(appRoot, "controller/");
+        const viewsDir = path.join(appRoot, "views/");
+        const modelsDir = path.join(appRoot, "models/");
+        const modelLogicsDir = path.join(appRoot, "logics/model-logic/");
+        const validatorsDir = path.join(appRoot, "logics/validator-rules/");
 
         const logReloading = (type) => {
             this.logger.info("App#watch", `${type} changes detected.`);
@@ -268,26 +272,22 @@ export default class Maya {
             fs.mkdirSync(staticDir);
         }
 
-        // watch static assets
-        this.watcher.watch(staticDir, _.throttle((event, file) => {
+        const assetsWatcher = (event, file) => {
             logReloading("\u001b[1mStatic Assets\u001b[m");
             this.server.requestReload(file);
-        }, 2000));
+        };
 
-        // watch controllers changes
-        this.watcher.watch(controllersDir, _.throttle(() => {
+        const controllersWatcher = () => {
             logReloading("\u001b[1mController\u001b[m");
             this.server.requestReload();
-        }, 2000));
+        };
 
-        // watch view changes
-        this.watcher.watch(viewsDir, _.throttle(() => {
+        const viewsWatcher = () => {
             logReloading("\u001b[1mView\u001b[m");
             this.server.requestReload();
-        }, 2000));
+        };
 
-        // watch model changes
-        this.watcher.watch(modelsDir, _.throttle((async function () {
+        const modelWatcher = async () => {
             logReloading("\u001b[1mModel\u001b[m");
 
             try {
@@ -298,12 +298,45 @@ export default class Maya {
 
                 // reload models
                 this.waterline = new Waterline();
-                this.models = await this._modelLoader.reload(this.waterline, this.config.get("database"));
+                this.models = await this._modelLoader.reload(
+                    this.waterline,
+                    this.validator,
+                    this.config.get("database")
+                );
                 this.server.requestReload();
             }
             catch (e) {
                 this.logger.error(`Model reloading error (${e.message})`);
             }
-        }).bind(this), 2000));
+        };
+
+        const validatorWatcher = async () => {
+            logReloading("\u001b[1mValidator\u001b[m");
+
+            // Reloading validator
+            const validator = new Wildgeese();
+            this._validationLoader.reload(validator);
+            console.log(validator);
+            this.validator = validator;
+
+            // Reload models (models depends validator)
+            await modelWatcher();
+        };
+
+        // watch static assets
+        this.watcher.watch(staticDir, _.throttle(assetsWatcher, waitMs));
+
+        // watch controllers changes
+        this.watcher.watch(controllersDir, _.throttle(controllersWatcher, waitMs));
+
+        // watch view changes
+        this.watcher.watch(viewsDir, _.throttle(viewsWatcher, waitMs));
+
+        // watch model changes
+        this.watcher.watch([modelsDir, modelLogicsDir], _.throttle(modelWatcher, waitMs));
+
+        // watch validator changes
+        this.watcher.watch(validatorsDir, _.throttle(validatorWatcher, waitMs))
+
     }
 }

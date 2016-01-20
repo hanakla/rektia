@@ -11,23 +11,22 @@ export default class FileWatcher {
     }
 
     /**
-     * @param {String} path
+     * @param {String|Array<String>} path
      * @param {Function(event: String, file: String)} callback
      * @return {Disposable}
      */
-    watch(path, callback) {
-        const watcher = fs.watch(path, {persistent: true, recursive: true}, callback);
-        watcher.on("error", (err) => { throw err; });
+    watch(paths, callback) {
+        const targets = Array.isArray(paths) ? paths : [paths];
+        const watchers = targets.map(path => fs.watch(path, {persistent: true, recursive: true}, callback));
+        watchers.map(watcher => watcher.on("error", err => { throw err; }));
 
         var unwatch = new Disposable(() => {
-            watcher.close();
-
+            watchers.map(w => w.close());
             this._watchers.remove(unwatch);
             unwatch = null;
         });
 
         this._watchers.add(unwatch);
-
         return unwatch;
     }
 
