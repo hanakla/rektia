@@ -38,7 +38,7 @@ app.use(session({
 }));
 
 app.use(koaBody({
-    formLimit : "5m",
+    formLimit : "5mb",
     multipart : true,
 }));
 
