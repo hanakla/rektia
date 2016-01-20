@@ -2,6 +2,7 @@ import _ from "lodash";
 import extend from "./utils/extend";
 import * as deep from "./utils/deep";
 
+import ValidationError from "./exception/validation-error";
 import Controller from "./controller";
 
 // Write class uses function
@@ -36,7 +37,7 @@ RestController.create = proto => {
 
 
 RestController.prototype = _.extend(Object.create(Controller), {
-    _init() {
+    _before() {
         this.model = deep.get(maya.models, this._model);
     },
 
@@ -55,7 +56,7 @@ RestController.prototype = _.extend(Object.create(Controller), {
     },
 
     "post_index"(ctx) {
-        return this._post(ctx);
+        return this._create(ctx);
     },
 
     "delete_:id"(ctx) {
@@ -63,11 +64,11 @@ RestController.prototype = _.extend(Object.create(Controller), {
     },
 
     "put_:id"(ctx) {
-        return this._put(ctx);
+        return this._update(ctx);
     },
 
     "patch_:id"(ctx) {
-        return this._put(ctx);
+        return this._update(ctx);
     },
 
     // Real handlers
@@ -77,18 +78,31 @@ RestController.prototype = _.extend(Object.create(Controller), {
     },
 
     *_get(ctx) {
-        ctx.body = yield this.model.find(req.params.id)[0];
+        ctx.body = yield this.model.find(ctx.params.id)[0];
     },
 
-    *_post(ctx) {
-        ctx.body = yield this.model.create(req.body)[0];
+    *_create(ctx) {
+        ctx.body = yield this.model.create(ctx.body)[0];
     },
 
     *_delete(ctx) {
-        ctx.body = yield this.model.destroy(req.params.id)[0];
+        ctx.body = yield this.model.destroy(ctx.params.id)[0];
     },
 
-    *_put(ctx) {
-        ctx.body = yield this.model.update(req.params.id, req.body)[0];
+    *_update(ctx) {
+        ctx.body = yield this.model.update(ctx.params.id, ctx.body)[0];
+    },
+
+    *_handleError(ctx, err) {
+        const error = err.originalError ? err.originalError : err;
+
+        if (error instanceof ValidationError) {
+            ctx.body = {error:"validation", fails : error.fails};
+        }
+        else {
+            ctx.status = 500;
+            ctx.body = {error:"exception"};
+            maya.logger.error(error.stack);
+        }
     }
 });

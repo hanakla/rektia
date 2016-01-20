@@ -57,11 +57,6 @@ module.exports = Controller.create({
         throw new Error("Handled correctry?");
     },
 
-    *socket(ctx) {
-        yield ctx.render("socket");
-        // maya.sockets.join
-    },
-
     // Custom response
 
     json(ctx) {

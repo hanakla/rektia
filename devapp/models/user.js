@@ -19,6 +19,7 @@ module.exports = Model.create({
     attributes : {
         // "field_name" : {
         //     type        : String,
+        //     label       : String, // TODO: Support i18n
         //     size        : Integer, // Optional
         //     defaultsTo  : Any, // Optional
         //     primaryKey  : Boolean, // Optional
@@ -41,14 +42,14 @@ module.exports = Model.create({
         "displayId" : {
             type : "string",
             size : 60,
+            defaultsTo : "",
+            rules : ["isUniqueDisplayId"]
         },
-    },
-
-    validate() {
-        console.log("hi");
+        "password" : {
+            type : "string",
+            size : 60,
+        }
     }
 
-    // afterValidate() {
-    //     console.log("hi");
-    // },
+    // All methods implemented in `logics/model-logic/user.js`
 });

@@ -57,6 +57,7 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
+    "browser-sync": "^2.11.0",
     "captains-log": "^0.11.11",
     "co": "^4.6.0",
     "event-kit": "^1.4.1",
@@ -73,6 +74,7 @@
     "stack-trace": "0.0.9",
     "url-parse": "^1.0.5",
     "waterline": "^0.10.28",
+    "wildgeese": "0.0.6",
     "yargs": "^3.31.0"
   },
   "repository": {

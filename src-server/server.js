@@ -6,15 +6,15 @@ import https from "https";
 import _ from "lodash";
 import koa from "koa";
 import socketio from "socket.io";
+import browserSync from "browser-sync";
 
 import Router from "./router"
+import SocketIOServer from "./socket.io-wrapper/server/server";
 
 // Middleware
 import attachParams from "./middleware/attach-params"
 import serverError from "./middleware/server-error";
 import router from "./middleware/router";
-import reloaderInjector from "./middleware/reloader-injector";
-import ioWatchAssets from "./middleware/io-watch-assets";
 
 export default class Server {
     /**
@@ -54,14 +54,18 @@ export default class Server {
      * @param {ModuleSwapper} options.swapper
      * @param {Logger} options.logger
      * @param {Object} options.routes
-     * @param {Logger} options.logger
+     * @param {boolean} options.browserSync
      */
     constructor(options) {
         this._swapper = options.swapper;
         this._logger = options.logger;
         this._koa = koa();
-        this._sockets = socketio();
+        this._sockets = new SocketIOServer(socketio());
         this.router = new Router(this._swapper, {logger: this._logger});
+
+        if (options.browserSync) {
+            this._browserSync = browserSync.create();
+        }
 
         this.use(serverError());
     }
@@ -101,6 +105,14 @@ export default class Server {
         }
     }
 
+    /**
+     * @param {Array<String>} files
+     */
+    requestReload(files) {
+        if (! this._browserSync) { return; }
+        this._browserSync.reload(files);
+    }
+
     _registerMiddlewares(options) {
         const controllersDir = path.join(options.appRoot, "controller/");
         const viewsDir = path.join(options.appRoot, "views/");
@@ -112,6 +124,24 @@ export default class Server {
     async _listen(options) {
         // Get request handlers
         const handler = this._koa.callback();
+        const serverPort = this._browserSync ? options.port + 2 : options.port;
+
+        if (this._browserSync) {
+            this._browserSync.init({
+                port : options.port,
+                proxy : {
+                    target : `localhost:${serverPort}`,
+                    ws : true,
+                },
+                https : !! options.https,
+                notify : false,
+                open : false,
+                logLevel : "silent",
+                ui : {
+                    port : options.port + 1,
+                }
+            });
+        }
 
         // Create server
         if (options.https) {
@@ -129,7 +159,7 @@ export default class Server {
 
         // Start server
         return new Promise((resolve, reject) => {
-            this._server.listen(options.port, (err) => {
+            this._server.listen(serverPort, (err) => {
                 if (err) reject(err);
                 resolve();
             });

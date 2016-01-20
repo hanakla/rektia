@@ -73,8 +73,7 @@ export default class Logger extends Emitter {
                 if (level < this.options.logLevel) { return; }
 
                 const logLabel = util.format(labeler, label);
-                const plainMessage = util.format(message, ...more);
-                const logMessage = color + plainMessage  + "\u001b[m";
+                const logMessage = util.format(message, ...more);
 
                 if (this.options.paused) {
                     this._buffer.push({logger, level, message: logLabel + logMessage});
