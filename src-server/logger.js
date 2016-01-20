@@ -86,7 +86,7 @@ export default class Logger extends Emitter {
                     type: logType,
                     level,
                     label: label,
-                    message : plainMessage
+                    message : logMessage
                 });
             };
         });
