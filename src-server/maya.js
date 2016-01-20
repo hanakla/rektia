@@ -4,12 +4,14 @@ import path from "path";
 import Waterline from "waterline";
 import yargs from "yargs";
 import co from "co";
+import Wildgeese from "wildgeese";
 
 import Logger from "./logger";
 import FileWatcher from "./file-watcher";
 import ModuleSwapper from "./module-swapper";
 import ConfigLoader from "./loader/config-loader";
 import ModelLoader from "./loader/model-loader";
+import ValidationLoader from "./loader/validation-loader";
 import Server from "./server";
 
 const VERSION = require(path.join(__dirname, "../package.json")).version;
@@ -146,6 +148,15 @@ export default class Maya {
             modelLogicsDir : path.join(this._options.appRoot, "logics/model-logic/"),
         });
 
+        // validator
+        this.validator = new Wildgeese();
+
+        // Validation loader
+        this._validationLoader = new ValidationLoader(this.swapper, {
+            logger : this.logger,
+            validationsDir : path.join(this._options.appRoot, "logics/validator-rules/")
+        });
+
         // database connector
         this.waterline = new Waterline();
 
@@ -174,11 +185,19 @@ export default class Maya {
             this.logger.setLogLevel(this.config.get("maya.log.level"));
             this.logger.resume();
 
+            // Load validators
+            this._validationLoader.load(this.validator);
+            // console.log(this.validator);
+
             // Load model definitions
             this._modelLoader.load();
 
             // Link models to waterline and expose models
-            this.models = await this._modelLoader.setupModels(this.waterline, this.config.get("database"));
+            this.models = await this._modelLoader.setupModels(
+                this.waterline,
+                this.validator,
+                this.config.get("database")
+            );
 
             // Run build script (`app/build.js`)
             this.logger.info("App#start", "Waiting for build...");
