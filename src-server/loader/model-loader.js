@@ -84,19 +84,20 @@ export default class ModelLoader {
         });
     }
 
-    async reload(waterline, options) {
+    async reload(waterline, validator, options) {
         this._modelInfos = {};
         this.load();
-        return this.setupModels(waterline, options);
+        return this.setupModels(waterline, validator, options);
     }
 
     /**
      * Set models into Waterline
      * @param {Waterline} waterline
+     * @param {Wildgeese} validator
      * @param {Object} waterline connection options
      * @return {Promise<Object>} waterline connected Models
      */
-    async setupModels(waterline, options) {
+    async setupModels(waterline, validator, options) {
         _.each(this._modelInfos, info => {
             const modelPath = info.model;
             const logicPath = info.logic;
@@ -104,10 +105,9 @@ export default class ModelLoader {
             const model = this._swapper.require(modelPath);
             const logic = logicPath ? _.cloneDeep(this._swapper.require(logicPath)) : {};
             this._wrapLogicMethods(logic);
+            const staticProps = _.assign({identity : info.identity}, logic.static);
 
-            waterline.loadCollection(model.toWaterlineCollection(logic, {
-                identity : info.identity
-            }));
+            waterline.loadCollection(model.toWaterlineCollection(logic, staticProps, validator));
         });
 
         return new Promise((resolve, reject) => {
@@ -131,16 +131,19 @@ export default class ModelLoader {
         });
     }
 
-    _wrapLogicMethods(obj) {
-        _.each(obj, (prop, name) => {
-            if (! _.isFunction(prop)) return;
+    _wrapLogicMethods(logic) {
+        var wrapProperty = prop => {
+            if (! _.isFunction(prop)) return prop;
 
-            obj[name] = function (...args) {
+            return function thisToFirstArgument(...args) {
                 return prop(this, ...args);
             };
-        });
+        };
 
-        return obj;
+        _.each(logic, (prop, name) => { logic[name] = wrapProperty(prop); });
+        logic.static && _.each(logic.static, (prop, name) => { logic.static[name] = wrapProperty(prop); });
+
+        return logic;
     }
 
     /**
