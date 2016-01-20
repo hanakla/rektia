@@ -2,6 +2,7 @@ import _ from "lodash";
 import extend from "./utils/extend";
 import * as deep from "./utils/deep";
 
+import ValidationError from "./exception/validation-error";
 import Controller from "./controller";
 
 // Write class uses function
@@ -90,5 +91,18 @@ RestController.prototype = _.extend(Object.create(Controller), {
 
     *_update(ctx) {
         ctx.body = yield this.model.update(ctx.params.id, ctx.body)[0];
+    },
+
+    *_handleError(ctx, err) {
+        const error = err.originalError ? err.originalError : err;
+
+        if (error instanceof ValidationError) {
+            ctx.body = {error:"validation", fails : error.fails};
+        }
+        else {
+            ctx.status = 500;
+            ctx.body = {error:"exception"};
+            maya.logger.error(error.stack);
+        }
     }
 });
