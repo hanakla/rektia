@@ -74,29 +74,63 @@ RestController.prototype = _.extend(Object.create(Controller), {
     // Real handlers
 
     *_list(ctx) {
-        ctx.body = yield this.model.find();
+        try {
+            ctx.body = yield this.model.find() || [];
+        }
+        catch (e) {
+            yield this._handleError(ctx, e);
+        }
     },
 
     *_get(ctx) {
-        ctx.body = yield this.model.find(ctx.params.id)[0];
+        try {
+            const hit = yield this.model.find(ctx.params.id);
+
+            if (hit.length) {
+                ctx.body = hit[0];
+            }
+            else {
+                ctx.status = 404;
+            }
+        }
+        catch (e) {
+            yield this._handleError(ctx, e);
+        }
     },
 
     *_create(ctx) {
-        ctx.body = yield this.model.create(ctx.body)[0];
+        try {
+            const created = yield this.model.create(ctx.field());
+            ctx.body = created;
+        }
+        catch (e) {
+            yield this._handleError(ctx, e);
+        }
     },
 
     *_delete(ctx) {
-        ctx.body = yield this.model.destroy(ctx.params.id)[0];
+        try {
+            ctx.body = yield this.model.destroy(ctx.params.id);
+        }
+        catch (e) {
+            yield this._handleError(ctx, e);
+        }
     },
 
     *_update(ctx) {
-        ctx.body = yield this.model.update(ctx.params.id, ctx.body)[0];
+        try {
+            ctx.body = (yield this.model.update(ctx.params.id, ctx.field()));
+        }
+        catch (e) {
+            yield this._handleError(ctx, e);
+        }
     },
 
     *_handleError(ctx, err) {
         const error = err.originalError ? err.originalError : err;
 
         if (error instanceof ValidationError) {
+            ctx.status = 400;
             ctx.body = {error:"validation", fails : error.fails};
         }
         else {
