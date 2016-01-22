@@ -95,7 +95,7 @@ export default class Server {
             this._registerMiddlewares(options);
             this.router.load({
                 routes  : options.routes,
-                controllerDir  : path.join(options.appRoot, "controller/")
+                controllerDir  : path.join(options.appRoot, "controllers/")
             });
             await this._listen(options);
         }

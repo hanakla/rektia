@@ -258,7 +258,7 @@ export default class Maya {
         const appRoot = this._options.appRoot;
 
         const staticDir = path.join(appRoot, ".tmp/");
-        const controllersDir = path.join(appRoot, "controller/");
+        const controllersDir = path.join(appRoot, "controllers/");
         const viewsDir = path.join(appRoot, "views/");
         const modelsDir = path.join(appRoot, "models/");
         const modelLogicsDir = path.join(appRoot, "logics/model-logic/");

@@ -79,7 +79,7 @@ module.exports = (argv) => {
     const options = parseArgs(argv);
     const [controllerName, ...methodDefinitions] = options._;
 
-    const controllerDir = path.join(process.cwd(), "server/controller/");
+    const controllerDir = path.join(process.cwd(), "server/controllers/");
     const exportPath = path.join(controllerDir, `${controllerName}.js`);
 
     const indent = options.indent === "tab" ? "\t" : " ".repeat(parseInt(options.indent, 10));
