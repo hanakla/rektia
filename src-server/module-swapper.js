@@ -20,22 +20,36 @@ export default class ModuleSwapper {
      */
 
     constructor(options) {
-        this.watcher = {};
+        this._loaded = {};
         this.options = options;
         this.logger = options.logger;
     }
 
-    require(modulePath, callerRequire) {
-        callerRequire = callerRequire || require;
+    /**
+     * Load and watch module
+     * @param {String} modulePath
+     * @param {Function} callerRequire=require
+     * @param {Boolean} forceReload=false  force load module as Swappable
+     */
+    require(modulePath, callerRequire, forceReload = false) {
+        const _require = callerRequire || require;
+
+        if (this._options.watch !== true) {
+            return _require(modulePath);
+        }
 
         try {
-            var fullPath = callerRequire.resolve(modulePath);
+            const fullPath = _require.resolve(modulePath);
 
-            if (this.options.watch === true) {
-                this.registerWatcher(fullPath);
-            }
+            // no re-watching for already loaded modules.
+            if (this._loaded[fullPath]) return _require(fullPath);
 
-            return callerRequire(fullPath);
+            this._loaded[fullPath] = {
+                forceReload,
+                watcher: this.registerWatcher(fullPath)
+            };
+
+            return _require(fullPath);
         }
         catch (e) {
             throw new Error(`Module loading failed for '${modulePath}'. (${e.message})`);
@@ -47,15 +61,15 @@ export default class ModuleSwapper {
     // }
 
     swapModule(fullPath) {
-        var cache = require.cache[fullPath];
+        const loadState = this._loaded[fullPath];
+        const oldCache = require.cache[fullPath];
 
-        if (! this.isSwappableModuleCache(cache)) { return; }
-
-        var oldCache = cache;
+        if (this.isSwappableModuleCache(oldCache) === false && loadState.forceReload !== true) return;
 
         try {
-            oldCache.exports._dispose();
-            oldCache = null;
+            if (typeof oldCache.exports === "object" && typeof oldCache.exports._dispose === "function") {
+                oldCache.exports._dispose();
+            };
         }
         catch (e) {
             throw new Error(`Module swapping failed for '${fullPath}' in disposing. (${e.message})`);
@@ -82,17 +96,12 @@ export default class ModuleSwapper {
     }
 
     registerWatcher(fullPath) {
-        if (this.watcher[fullPath]) { return; }
+        if (this._loaded[fullPath]) { return; }
 
         this.logger.silly("ModuleSwapper", "start watching : %s", fullPath);
 
-        this.watcher[fullPath] = fs.watch(fullPath, (event, filename) => {
+        return fs.watch(fullPath, (event, filename) => {
             switch (event) {
-            //    case "rename":
-            //         fullPath = filename;
-            //     //    this.watcher[filename] = this.watcher[fullPath];
-            //        break;
-
                 case "change":
                     try {
                         this.swapModule(fullPath);
