@@ -114,9 +114,6 @@ export default class Server {
     }
 
     _registerMiddlewares(options) {
-        const controllersDir = path.join(options.appRoot, "controller/");
-        const viewsDir = path.join(options.appRoot, "views/");
-
         this.use(attachParams(this));
         this.use(router(this.router));
     }
