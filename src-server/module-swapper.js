@@ -22,7 +22,7 @@ export default class ModuleSwapper {
     constructor(options) {
         this._loaded = {};
         this.options = options;
-        this.logger = options.logger;
+        this.log = options.logger;
     }
 
     /**
@@ -87,7 +87,7 @@ export default class ModuleSwapper {
             throw new Error(`Module swapping failed for '${fullPath}' in disposing. (${e.message})`);
         }
 
-        this.logger.verbose("ModuleSwapper", "swapped module %s", fullPath);
+        this.log.verbose("ModuleSwapper", "swapped module %s", fullPath);
     }
 
     isSwappableModuleCache(cache) {
@@ -100,7 +100,7 @@ export default class ModuleSwapper {
     registerWatcher(fullPath) {
         if (this._loaded[fullPath]) { return; }
 
-        this.logger.silly("ModuleSwapper", "start watching : %s", fullPath);
+        this.log.silly("ModuleSwapper", "start watching : %s", fullPath);
 
         return fs.watch(fullPath, (event, filename) => {
             switch (event) {
@@ -110,7 +110,7 @@ export default class ModuleSwapper {
                         break;
                     }
                     catch (e) {
-                        this.logger.error("ModuleSwapper#swapModule", e.stack);
+                        this.log.error("ModuleSwapper#swapModule", e.stack);
                     }
            }
        });
