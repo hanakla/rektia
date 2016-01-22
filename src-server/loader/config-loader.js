@@ -2,7 +2,7 @@ import _ from "lodash";
 import path from "path";
 import fs from "fs";
 import glob from "glob";
-import {Emitter} from "event-kit"
+import Emitter from "../utils/emitter"
 
 import * as deep from "../utils/deep"
 
