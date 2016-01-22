@@ -28,6 +28,8 @@ export default class RouteTree {
      *  [0] -> httpMethod
      *  [1] -> url fragments pattern
      *  [2] -> Controller information
+     *  [2].controller -> path to Controller
+     *  [2].method -> handler method name.
      */
     mergeFlattenTree(routeList) {
         const routeTree = Object.create(null);
@@ -77,10 +79,8 @@ export default class RouteTree {
     findMatchController(httpMethod, url, routeTree = this.tree) {
         httpMethod = httpMethod.toLowerCase();
 
-        const urlFragments = url.replace(/(^\/|\/$)/g, "")
-            .split("/")
-            .filter(fragment => fragment !== "")
-            .map(fragment => `/${fragment}`);
+        // split(1) : ignore first fragment (it's always "")
+        const urlFragments = url.split("/").slice(1).map(f => `/${f}`);
 
         const candidateNodes = urlFragments.reduce((candidateNodes, currentFragment) => {
             return this._findMatchNodes(candidateNodes, currentFragment);
@@ -113,6 +113,9 @@ export default class RouteTree {
     }
 
     /**
+     * Find match the fragment node.
+     * (it prevail static route.)
+     *
      * @private
      * @param {Array<Object>} nodes
      * @param {String} fragment a URL fragment likes "/fragment"
