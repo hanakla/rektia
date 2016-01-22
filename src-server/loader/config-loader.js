@@ -32,7 +32,7 @@ export default class ConfigLoader {
 
     /**
      * @private
-     * @property {Logger} logger
+     * @property {Logger} log
      */
 
     /**
@@ -47,7 +47,7 @@ export default class ConfigLoader {
         this._emitter = new Emitter();
         this._swapper = swapper;
         this.options = options;
-        this.logger = options.logger;
+        this._log = options.logger;
         this._configs = Object.create(null);
     }
 
@@ -88,7 +88,7 @@ export default class ConfigLoader {
      */
     startWatch() {
         fs.watch(this.options.configDir, {recursive: true}, (ev, file) => {
-            this.logger.info("ConfigLoader", "Reloading config : %s", file);
+            this._log.info("ConfigLoader", "Reloading config : %s", file);
             this.load();
         });
     }

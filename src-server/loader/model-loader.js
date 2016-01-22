@@ -30,7 +30,7 @@ export default class ModelLoader {
 
     /**
      * @private
-     * @property {Logger} logger
+     * @property {Logger} log
      */
 
     /**
@@ -44,7 +44,7 @@ export default class ModelLoader {
     constructor(swapper, options) {
         this._swapper = swapper;
         this.options = options;
-        this.logger = options.logger;
+        this._log = options.logger;
         this._modelInfos = {};
     }
 
@@ -76,7 +76,7 @@ export default class ModelLoader {
             const modelId = (pathInfo.dir !== "" ? pathInfo.dir + "/" : "") + pathInfo.name;
 
             if (! this._modelInfos[modelId]) {
-                this.logger.warn("ModelLoader", `There is no model that corresponds to the Logic.(for app/logics/model-logic/${relativePath})`);
+                this._log.warn("ModelLoader", `There is no model that corresponds to the Logic.(for app/logics/model-logic/${relativePath})`);
                 return;
             }
 
@@ -151,7 +151,7 @@ export default class ModelLoader {
      */
     startWatch() {
         fs.watch(this.options.modelDir, {recursive: true}, (ev, file) => {
-            this.logger.info("ModelLoader", "Reloading config : %s", file);
+            this._log.info("ModelLoader", "Reloading config : %s", file);
             this.load();
         });
     }

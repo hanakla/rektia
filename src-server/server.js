@@ -58,10 +58,10 @@ export default class Server {
      */
     constructor(options) {
         this._swapper = options.swapper;
-        this._logger = options.logger;
+        this._log = options.logger;
         this._koa = koa();
         this._sockets = new SocketIOServer(socketio());
-        this.router = new Router(this._swapper, {logger: this._logger});
+        this.router = new Router(this._swapper, {logger: this._log});
 
         if (options.browserSync) {
             this._browserSync = browserSync.create();
@@ -100,7 +100,7 @@ export default class Server {
             await this._listen(options);
         }
         catch (e) {
-            this._logger.error("Server#start", `${e.message}\n${e.stack}`);
+            this._log.error("Server#start", `${e.message}\n${e.stack}`);
             throw e;
         }
     }
