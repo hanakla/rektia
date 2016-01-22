@@ -13,7 +13,7 @@
   },
   "scripts": {
     "prepubulish": "$(npm bin)/fly prePubulish",
-    "test": "$(npm bin)/mocha --compilers coffee:coffee-script/register --reporter spec --require coffee-script --require ./specs/_.js --colors specs/*-spec.{coffee,js}"
+    "test": "$(npm bin)/mocha --compilers coffee:coffee-script/register --reporter spec --require coffee-script --require ./specs/_.js --colors specs/*-spec.{coffee,js} -- --harmony_destructuring"
   },
   "keywords": [
     "Web",
