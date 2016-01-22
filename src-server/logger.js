@@ -1,5 +1,5 @@
 import _ from "lodash";
-import Emitter from "eventemitter3";
+import Emitter from "./utils/emitter";
 import util from "util";
 
 const logLevel = {
