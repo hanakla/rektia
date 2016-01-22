@@ -4,12 +4,14 @@ import path from "path";
 import Waterline from "waterline";
 import yargs from "yargs";
 import co from "co";
+import Wildgeese from "wildgeese";
 
 import Logger from "./logger";
 import FileWatcher from "./file-watcher";
 import ModuleSwapper from "./module-swapper";
 import ConfigLoader from "./loader/config-loader";
 import ModelLoader from "./loader/model-loader";
+import ValidationLoader from "./loader/validation-loader";
 import Server from "./server";
 
 const VERSION = require(path.join(__dirname, "../package.json")).version;
@@ -146,13 +148,23 @@ export default class Maya {
             modelLogicsDir : path.join(this._options.appRoot, "logics/model-logic/"),
         });
 
+        // validator
+        this.validator = new Wildgeese();
+
+        // Validation loader
+        this._validationLoader = new ValidationLoader(this.swapper, {
+            logger : this.logger,
+            validationsDir : path.join(this._options.appRoot, "logics/validator-rules/")
+        });
+
         // database connector
         this.waterline = new Waterline();
 
         // express instance handler
         this.server = new Server({
             swapper : this.swapper,
-            logger : this.logger
+            logger : this.logger,
+            browserSync : options.env === Maya.ENV_DEVEL && options.watch
         });
 
         Object.defineProperty(this, "keys", {
@@ -173,11 +185,19 @@ export default class Maya {
             this.logger.setLogLevel(this.config.get("maya.log.level"));
             this.logger.resume();
 
+            // Load validators
+            this._validationLoader.load(this.validator);
+            // console.log(this.validator);
+
             // Load model definitions
-            this._modelLoader.load({watch: this._options.watch});
+            this._modelLoader.load();
 
             // Link models to waterline and expose models
-            this.models = await this._modelLoader.setupModels(this.waterline, this.config.get("database"));
+            this.models = await this._modelLoader.setupModels(
+                this.waterline,
+                this.validator,
+                this.config.get("database")
+            );
 
             // Run build script (`app/build.js`)
             this.logger.info("App#start", "Waiting for build...");
@@ -185,7 +205,7 @@ export default class Maya {
             this.logger.info("App#start", "End build");
 
             // get socket.io host object
-            this.sockets = this.server.getSocketIo();
+            this.io = this.server.getSocketIo();
 
             // if watch option enabled, start chnages watching.
             if (this._options.watch) {
@@ -207,7 +227,7 @@ export default class Maya {
                 watch   : this._options.watch
             });
 
-            this.logger.info("Server", `<maya.js start on port ${listeningPort} in ${this._options.env} environment.>`);
+            this.logger.info("Server", `<maya.js start on port \u001b[1m${listeningPort}\u001b[m in \u001b[34m${this._options.env} environment.\u001b[m>`);
         }
         catch (e) {
             this.logger.error("App#start", `${e.message}\n${e.stack}`);
@@ -224,7 +244,7 @@ export default class Maya {
     }
 
     async _buildScripts() {
-        this.logger.info("App Builder", "Run build.js");
+        this.logger.verbose("App#_buildScripts", "Run build.js");
 
         const buildScript = path.join(this._options.appRoot, "build.js");
         const builder = this.swapper.require(buildScript, require);
@@ -234,40 +254,89 @@ export default class Maya {
     }
 
     _startAssetsWatching() {
-        const staticDir = path.join(this._options.appRoot, ".tmp/");
-        const stylesDir = path.join(staticDir, "styles/");
-        const controllersDir = path.join(this._options.appRoot, "controller/");
-        const viewsDir = path.join(this._options.appRoot, "views/");
+        const waitMs = 2000;
+        const appRoot = this._options.appRoot;
+
+        const staticDir = path.join(appRoot, ".tmp/");
+        const controllersDir = path.join(appRoot, "controllers/");
+        const viewsDir = path.join(appRoot, "views/");
+        const modelsDir = path.join(appRoot, "models/");
+        const modelLogicsDir = path.join(appRoot, "logics/model-logic/");
+        const validatorsDir = path.join(appRoot, "logics/validator-rules/");
+
+        const logReloading = (type) => {
+            this.logger.info("App#watch", `${type} changes detected.`);
+        };
 
         if (! fs.existsSync(staticDir)) {
             fs.mkdirSync(staticDir);
         }
 
-        // Request swapping links
-        const swap = _.debounce((type, fileUrl) => {
-            this.sockets.to("__maya__").emit("__maya__.swap", {fileType: "css", fileUrl});
-        }, 500, { maxWait: 5000});
+        const assetsWatcher = (event, file) => {
+            logReloading("\u001b[1mStatic Assets\u001b[m");
+            this.server.requestReload(file);
+        };
 
-        // Request page reloading
-        const reload = _.debounce((file) => {
-            this.sockets.to("__maya__").emit("__maya__.reload");
-        }, 500, { maxWait: 5000});
+        const controllersWatcher = () => {
+            logReloading("\u001b[1mController\u001b[m");
+            this.server.requestReload();
+        };
+
+        const viewsWatcher = () => {
+            logReloading("\u001b[1mView\u001b[m");
+            this.server.requestReload();
+        };
+
+        const modelWatcher = async () => {
+            logReloading("\u001b[1mModel\u001b[m");
+
+            try {
+                // teardown old models
+                this.models = null;
+                await new Promise(resolve => this.waterline.teardown(resolve))
+                this.waterline = null;
+
+                // reload models
+                this.waterline = new Waterline();
+                this.models = await this._modelLoader.reload(
+                    this.waterline,
+                    this.validator,
+                    this.config.get("database")
+                );
+                this.server.requestReload();
+            }
+            catch (e) {
+                this.logger.error(`Model reloading error (${e.message})`);
+            }
+        };
+
+        const validatorWatcher = async () => {
+            logReloading("\u001b[1mValidator\u001b[m");
+
+            // Reloading validator
+            const validator = new Wildgeese();
+            this._validationLoader.reload(validator);
+            console.log(validator);
+            this.validator = validator;
+
+            // Reload models (models depends validator)
+            await modelWatcher();
+        };
 
         // watch static assets
-        this.watcher.watch(staticDir, (event, file) => {
-            if (/^styles\/.+/.test(file)) {
-                // if css file updated
-                swap("css", `/${file}`);
-            }
-            else {
-                reload();
-            }
-        });
+        this.watcher.watch(staticDir, _.throttle(assetsWatcher, waitMs));
 
         // watch controllers changes
-        this.watcher.watch(controllersDir, reload);
+        this.watcher.watch(controllersDir, _.throttle(controllersWatcher, waitMs));
 
         // watch view changes
-        this.watcher.watch(viewsDir, reload);
+        this.watcher.watch(viewsDir, _.throttle(viewsWatcher, waitMs));
+
+        // watch model changes
+        this.watcher.watch([modelsDir, modelLogicsDir], _.throttle(modelWatcher, waitMs));
+
+        // watch validator changes
+        this.watcher.watch(validatorsDir, _.throttle(validatorWatcher, waitMs))
+
     }
 }

@@ -92,13 +92,13 @@ export default class Router {
         const controllerPaths = glob.sync(`${controllerDir}/**/*.{${loadableExtensions}}`);
 
         return controllerPaths.map((fullPath) => {
-            // get controller relative path from `app/controller/`
+            // get controller relative path from `app/controllers/`
             return [fullPath, fullPath.slice(controllerDir.length)];
         })
         .map(([fullPath, relativePath]) => {
             // Survey controller's implemented handlers.
             // And returns [fullPath, relatePath, methods].
-            // `relativePath` is relate path from `app/controller/`
+            // `relativePath` is relate path from `app/controllers/`
 
             const controller = this.swapper.require(fullPath, require);
             this._isValidController(controller);
@@ -119,11 +119,11 @@ export default class Router {
                 .map((fragment) => `/${fragment}`);
 
             if (controllerName === "_root_" && urlFragments.length !== 0) {
-                throw new Error("_root_ Controller only deployment as `app/controller/_root_.js`");
+                throw new Error("_root_ Controller only deployment as `app/controllers/_root_.js`");
             }
 
             if (controllerName !== "_root_") {
-                // "app/controller/_root_.js" mapped to `example.com/*`
+                // "app/controllers/_root_.js" mapped to `example.com/*`
                 // otherwise mapped to "exapmle.com/${controllerName}/*"
                 urlFragments.push(`/${controllerName}`);
             }

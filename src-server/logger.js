@@ -1,5 +1,5 @@
 import _ from "lodash";
-import Emitter from "eventemitter3";
+import Emitter from "./utils/emitter";
 import util from "util";
 
 const logLevel = {
@@ -73,8 +73,7 @@ export default class Logger extends Emitter {
                 if (level < this.options.logLevel) { return; }
 
                 const logLabel = util.format(labeler, label);
-                const plainMessage = util.format(message, ...more);
-                const logMessage = color + plainMessage  + "\u001b[m";
+                const logMessage = util.format(message, ...more);
 
                 if (this.options.paused) {
                     this._buffer.push({logger, level, message: logLabel + logMessage});
@@ -87,7 +86,7 @@ export default class Logger extends Emitter {
                     type: logType,
                     level,
                     label: label,
-                    message : plainMessage
+                    message : logMessage
                 });
             };
         });
