@@ -44,7 +44,7 @@ export default class ValidationLoader {
     load(wildgeese) {
         const loadableExtensions = Object.keys(require.extensions).join(",");
         const validationRuleFiles = glob.sync(`${this.options.validationsDir}/**/*{${loadableExtensions}}`);
-        const rules = validationRuleFiles.map(filePath => this._swapper.require(filePath));
+        const rules = validationRuleFiles.map(filePath => this._swapper.require(filePath, require, /* force reloadable = */ true));
         wildgeese.addRule(rules);
     }
 

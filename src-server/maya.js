@@ -128,6 +128,7 @@ export default class Maya {
         // SwappableModule loader
         this.swapper = new ModuleSwapper({
             logger  : this.logger,
+            watcher : this.watcher,
             watch   : this._options.watch
         });
 
@@ -287,7 +288,7 @@ export default class Maya {
             this.server.requestReload();
         };
 
-        const modelWatcher = async () => {
+        const modelWatcher = (async function () {
             logReloading("\u001b[1mModel\u001b[m");
 
             try {
@@ -308,20 +309,26 @@ export default class Maya {
             catch (e) {
                 this.logger.error(`Model reloading error (${e.message})`);
             }
-        };
+        }).bind(this);
 
-        const validatorWatcher = async () => {
+        const validatorWatcher = (async function () {
             logReloading("\u001b[1mValidator\u001b[m");
 
             // Reloading validator
-            const validator = new Wildgeese();
-            this._validationLoader.reload(validator);
-            console.log(validator);
-            this.validator = validator;
+            try {
+                const validator = new Wildgeese();
+                this._validationLoader.reload(validator);
+                this.validator = validator;
+                // _.map(this.validator._validators, v => console.log(v.__generatorFunction__.toString()));
 
-            // Reload models (models depends validator)
-            await modelWatcher();
-        };
+                // Reload models (models depends validator)
+                // await modelWatcher();
+                modelWatcher();
+            }
+            catch (e) {
+                this.logger.error(`Validator reloading error (${e.message})`);
+            }
+        }).bind(this);
 
         // watch static assets
         this.watcher.watch(staticDir, _.throttle(assetsWatcher, waitMs));
