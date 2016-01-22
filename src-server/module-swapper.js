@@ -66,6 +66,18 @@ export default class ModuleSwapper {
 
         if (this.isSwappableModuleCache(oldCache) === false && loadState.forceReload !== true) return;
 
+        // Try to load updated module
+        try {
+            delete require.cache[fullPath];
+            require(fullPath);
+        }
+        catch (e) {
+            // restore old module.exports
+            require.cache[fullPath] = oldCache;
+            throw new Error(`Module swapping failed for '${fullPath}'. (${e.message})`);
+        }
+
+        // Try to dispose old module
         try {
             if (typeof oldCache.exports === "object" && typeof oldCache.exports._dispose === "function") {
                 oldCache.exports._dispose();
@@ -73,16 +85,6 @@ export default class ModuleSwapper {
         }
         catch (e) {
             throw new Error(`Module swapping failed for '${fullPath}' in disposing. (${e.message})`);
-        }
-
-        try {
-            delete require.cache[fullPath];
-            require(fullPath);
-        }
-        catch (e) {
-            // restore old module.exports
-            delete require.cache[fullPath];
-            throw new Error(`Module swapping failed for '${fullPath}'. (${e.message})`);
         }
 
         this.logger.verbose("ModuleSwapper", "swapped module %s", fullPath);
