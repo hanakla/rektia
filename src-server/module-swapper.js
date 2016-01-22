@@ -19,6 +19,13 @@ export default class ModuleSwapper {
      * @property {Logger} logger
      */
 
+    /**
+     * @class ModuleSwapper
+     * @constructor
+     * @param {Object} options
+     * @param {Logger} options.logger
+     * @param {Boolean} options.watch
+     */
     constructor(options) {
         this._loaded = {};
         this._options = options;
