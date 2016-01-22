@@ -33,7 +33,7 @@ export default class ValidationLoader {
         this._swapper = swapper;
 
         this.options = options;
-        this.logger = options.logger;
+        this._log = options.logger;
     }
 
     /**
