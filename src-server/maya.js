@@ -128,6 +128,7 @@ export default class Maya {
         // SwappableModule loader
         this.swapper = new ModuleSwapper({
             logger  : this.logger,
+            watcher : this.watcher,
             watch   : this._options.watch
         });
 

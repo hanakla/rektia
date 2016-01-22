@@ -3,32 +3,44 @@ import Swappable from "./swappable";
 import prettyLog from "./utils/pretty-log"
 
 export default class ModuleSwapper {
-
     /**
-     * @property {Object<string, fs.FSWatcher>} watcher
+     * @private
+     * @property {Object<string, Object>} _loaded
      */
-    // watcher;
+    // _loaded;
 
     /**
+     * @private
      * @property {Object} options
      * @property {Boolean} options.watch
      */
     // _options;
 
     /**
-     * @property {Logger} logger
+     * @private
+     * @property {FileWatcher} _watcher
      */
+    // _watcher;
+
+    /**
+     * @private
+     * @property {Logger} log
+     */
+    // log,
 
     /**
      * @class ModuleSwapper
      * @constructor
      * @param {Object} options
      * @param {Logger} options.logger
+     * @param {FileWatcher} options.watcher
      * @param {Boolean} options.watch
      */
     constructor(options) {
         this._loaded = {};
+
         this._options = options;
+        this._watcher = options.watcher;
         this.log = options.logger;
     }
 
@@ -62,10 +74,6 @@ export default class ModuleSwapper {
             throw new Error(`Module loading failed for '${modulePath}'. (${e.message})`);
         }
     }
-
-    // watch (path, callback) {
-    //     fs.watch(path, callback);
-    // }
 
     swapModule(fullPath) {
         const loadState = this._loaded[fullPath];
@@ -109,7 +117,7 @@ export default class ModuleSwapper {
 
         this.log.silly("ModuleSwapper", "start watching : %s", fullPath);
 
-        return fs.watch(fullPath, (event, filename) => {
+        return this._watcher.watch(fullPath, (event, filename) => {
             switch (event) {
                 case "change":
                     try {
@@ -117,7 +125,7 @@ export default class ModuleSwapper {
                         break;
                     }
                     catch (e) {
-                        this.log.error("ModuleSwapper#swapModule", e.stack);
+                        this.log.error("ModuleSwapper#swapModule", "Failed to swap module %s", e.stack);
                     }
            }
        });
