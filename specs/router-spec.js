@@ -34,27 +34,21 @@ describe("Router test", function() {
 
     describe("#_prefetchControllers", function() {
         it("load valid controllers", function() {
-            var router;
-            router = new Router(moduleSwapper, {
+            const router = new Router(moduleSwapper, {
                 watch: false,
                 routes: {},
                 controllerDir: __dirname + "/mocks/router-valid-controllers/"
             });
-            (function() {
-                router._prefetchControllers();
-            }).should.not["throw"]();
+            expect(() => router._prefetchControllers()).to.not.throwException();
         });
 
-        it("load invalid controllers", function() {
-            var router;
-            router = new Router(moduleSwapper, {
+        it("Should throw Exception _root_ controller deployed in not `controllers/`", function() {
+            const router = new Router(moduleSwapper, {
                 watch: false,
                 routes: {},
                 controllerDir: __dirname + "/mocks/router-invalid-controllers/"
             });
-            (function() {
-                router._prefetchControllers();
-            }).should["throw"]("_root_ Controller only deployment as `app/controller/_root_.js`");
+            expect(() => router._prefetchControllers()).to.throwException("_root_ Controller only deployment as `app/controller/_root_.js`");
         });
     });
 });
