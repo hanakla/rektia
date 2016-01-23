@@ -117,7 +117,7 @@ export default class Maya {
         // });
 
         // application logger
-        this.logger = new Logger({
+        this.log = new Logger({
             logLevel : 0,
             paused : true,
         });
@@ -127,13 +127,14 @@ export default class Maya {
 
         // SwappableModule loader
         this.swapper = new ModuleSwapper({
-            logger  : this.logger,
+            logger  : this.log,
+            watcher : this.watcher,
             watch   : this._options.watch
         });
 
         // config accessor
         this.config = new ConfigLoader(this.swapper, {
-            logger      : this.logger,
+            logger      : this.log,
             configDir   : path.join(this._options.appRoot, "config/"),
             env         : this._options.env
         });
@@ -143,7 +144,7 @@ export default class Maya {
 
         // Model loader
         this._modelLoader = new ModelLoader(this.swapper, {
-            logger : this.logger,
+            logger : this.log,
             modelDir : path.join(this._options.appRoot, "models/"),
             modelLogicsDir : path.join(this._options.appRoot, "logics/model-logic/"),
         });
@@ -153,7 +154,7 @@ export default class Maya {
 
         // Validation loader
         this._validationLoader = new ValidationLoader(this.swapper, {
-            logger : this.logger,
+            logger : this.log,
             validationsDir : path.join(this._options.appRoot, "logics/validator-rules/")
         });
 
@@ -163,7 +164,7 @@ export default class Maya {
         // express instance handler
         this.server = new Server({
             swapper : this.swapper,
-            logger : this.logger,
+            logger : this.log,
             browserSync : options.env === Maya.ENV_DEVEL && options.watch
         });
 
@@ -182,8 +183,8 @@ export default class Maya {
     async start() {
         try {
             // set log level
-            this.logger.setLogLevel(this.config.get("maya.log.level"));
-            this.logger.resume();
+            this.log.setLogLevel(this.config.get("maya.log.level"));
+            this.log.resume();
 
             // Load validators
             this._validationLoader.load(this.validator);
@@ -200,9 +201,9 @@ export default class Maya {
             );
 
             // Run build script (`app/build.js`)
-            this.logger.info("App#start", "Waiting for build...");
+            this.log.info("App#start", "Waiting for build...");
             await this._buildScripts();
-            this.logger.info("App#start", "End build");
+            this.log.info("App#start", "End build");
 
             // get socket.io host object
             this.io = this.server.getSocketIo();
@@ -227,10 +228,10 @@ export default class Maya {
                 watch   : this._options.watch
             });
 
-            this.logger.info("Server", `<maya.js start on port \u001b[1m${listeningPort}\u001b[m in \u001b[34m${this._options.env} environment.\u001b[m>`);
+            this.log.info("Server", `<maya.js start on port \u001b[1m${listeningPort}\u001b[m in \u001b[34m${this._options.env} environment.\u001b[m>`);
         }
         catch (e) {
-            this.logger.error("App#start", `${e.message}\n${e.stack}`);
+            this.log.error("App#start", `${e.message}\n${e.stack}`);
             process.exit(-1);
         }
     }
@@ -244,7 +245,7 @@ export default class Maya {
     }
 
     async _buildScripts() {
-        this.logger.verbose("App#_buildScripts", "Run build.js");
+        this.log.verbose("App#_buildScripts", "Run build.js");
 
         const buildScript = path.join(this._options.appRoot, "build.js");
         const builder = this.swapper.require(buildScript, require);
@@ -265,7 +266,7 @@ export default class Maya {
         const validatorsDir = path.join(appRoot, "logics/validator-rules/");
 
         const logReloading = (type) => {
-            this.logger.info("App#watch", `${type} changes detected.`);
+            this.log.info("App#watch", `${type} changes detected.`);
         };
 
         if (! fs.existsSync(staticDir)) {
@@ -287,7 +288,7 @@ export default class Maya {
             this.server.requestReload();
         };
 
-        const modelWatcher = async () => {
+        const modelWatcher = (async function () {
             logReloading("\u001b[1mModel\u001b[m");
 
             try {
@@ -306,22 +307,28 @@ export default class Maya {
                 this.server.requestReload();
             }
             catch (e) {
-                this.logger.error(`Model reloading error (${e.message})`);
+                this.log.error(`Model reloading error (${e.message})`);
             }
-        };
+        }).bind(this);
 
-        const validatorWatcher = async () => {
+        const validatorWatcher = (async function () {
             logReloading("\u001b[1mValidator\u001b[m");
 
             // Reloading validator
-            const validator = new Wildgeese();
-            this._validationLoader.reload(validator);
-            console.log(validator);
-            this.validator = validator;
+            try {
+                const validator = new Wildgeese();
+                this._validationLoader.reload(validator);
+                this.validator = validator;
+                // _.map(this.validator._validators, v => console.log(v.__generatorFunction__.toString()));
 
-            // Reload models (models depends validator)
-            await modelWatcher();
-        };
+                // Reload models (models depends validator)
+                // await modelWatcher();
+                modelWatcher();
+            }
+            catch (e) {
+                this.log.error(`Validator reloading error (${e.message})`);
+            }
+        }).bind(this);
 
         // watch static assets
         this.watcher.watch(staticDir, _.throttle(assetsWatcher, waitMs));

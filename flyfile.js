@@ -100,6 +100,7 @@ export function* babelServer() {
                 "stage-3",
             ],
             plugins : [
+                "add-module-exports",
                 "transform-es2015-arrow-functions",
                 "transform-es2015-block-scoped-functions",
                 "transform-es2015-block-scoping",
@@ -118,7 +119,6 @@ export function* babelServer() {
                 "transform-es2015-template-literals",
                 "transform-es2015-typeof-symbol",
                 "transform-es2015-unicode-regex",
-                "add-module-exports"
             ]
         })
         // .notify({
