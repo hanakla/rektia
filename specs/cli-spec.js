@@ -38,14 +38,14 @@ describe("cli test", () => {
         });
 
         it("`_isValidMayaProject` correctry validate invalid maya.js project", () => {
-            expect(cliEntry._isValidMayaProject(__dirname)).to.not.be.ok();
+            expect(cliEntry._isValidMayaProject(__dirname)).to.not.be(true);
+            expect(cliEntry._isValidMayaProject(__dirname)).to.be("PACKAGE_JSON_NOT_FOUND");
         });
     });
 
     describe("cli init", () => {
         it("`maya init` correcty copies boilerplate", () => {
-            var boilerplateRoot, copiedTo, copyFrom, globOption, initRoot;
-            const globOption = {ignore: "**/.DS_Store"};
+            const globOption = {ignore: "**/.DS_Store", nodir: true};
             const boilerplateRoot = join(__dirname, "../boilerplate");
             const initRoot = join(__dirname, ".tmp/cli-init-test");
 
