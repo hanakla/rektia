@@ -63,7 +63,7 @@ export function* babelBrowser() {
         .target(paths.browserDistTmp);
 
     yield this.source(`${paths.browserDistTmp}maya.js`)
-        .browse()
+        .browserify()
         .uglify()
         // .notify({
         //     title : "Fly",
