@@ -16,7 +16,7 @@ export function* prePubulish() {
 }
 
 export function* buildServer() {
-    yield this.start(["cleanServer", "babelServer", "jadeServer", "copyBin"]);
+    yield this.start(["cleanServer", "babelServer", "copyBin"]);
 }
 
 export function* buildBrowser() {
@@ -30,13 +30,6 @@ export function* cleanBrowser() {
     yield this.clear(paths.browserDistTmp);
     yield this.clear(`${paths.browserDist}/maya.js`);
 }
-
-// export function* jadeServer() {
-//     yield this
-//         .source("src/**/*.jade")
-//         // .jade({base: "src/views"})
-//         .target(paths.serverDist);
-// }
 
 export function* babelBrowser() {
     yield this
@@ -88,7 +81,6 @@ export function* cleanServer() {
 export function* jadeServer() {
     yield this
         .source("src-server/**/*.jade")
-        // .jade({base: "src/views"})
         .target(paths.serverDist);
 }
 

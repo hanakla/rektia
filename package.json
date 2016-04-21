@@ -51,7 +51,6 @@
     "fly-babel": "^0.6.1",
     "fly-browserify": "^0.1.2",
     "fly-esnext": "^1.0.1",
-    "fly-jade": "^1.0.1",
     "fly-notify": "^0.3.4",
     "fly-uglify": "^1.0.0",
     "mocha": "^2.4.5",
