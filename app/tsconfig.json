@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "rectia": "../src-server/index.ts"
+        }
+    },
+    "files": [
+        "./app.ts"
+    ]
+}
