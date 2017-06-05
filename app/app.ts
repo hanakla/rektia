@@ -1,4 +1,4 @@
-import Rectia from 'rectia'
+import Rektia from '../'
 
-const app = new Rectia()
-app.listen(2000)
+const app = new Rektia()
+app.start()

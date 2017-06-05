@@ -1,6 +1,6 @@
-import Rectia from './Rectia'
+import Rektia from './Rektia'
 
-export default Rectia
+export default Rektia
 export {default as Context} from './Context'
 export {default as Controller} from './Controller'
-export {default as Model} from './Model'
+export {default as Model} from './Model/Model'

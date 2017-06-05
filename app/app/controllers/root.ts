@@ -1,5 +1,7 @@
-import {Controller, Context} from 'rectia'
+import {Controller, Context} from '../../../'
 
-export const index = (ctx: Context) => {
+export default class Root extends Controller {
+    public index(ctx: Context) {
 
+    }
 }

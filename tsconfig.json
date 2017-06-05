@@ -4,16 +4,19 @@
         "outDir": "./dist",
         "allowJs": true,
         "target": "es2015",
-        "module": "commonjs",
+        "module": "es2015",
         "moduleResolution": "node",
         "lib": [
             "es2015",
             "es2016",
-            "es2017"
+            "es2017",
+            "es2017.object"
         ]
     },
     "files": [
-        "src-server/index",
-        "src-server/bin/maya"
+        "./src-server/index"
+    ],
+    "include": [
+        "./src-server/index"
     ]
 }

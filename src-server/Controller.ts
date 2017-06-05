@@ -14,7 +14,9 @@ interface State {}
  */
 export type Action = (ctx: Context, next: () => Promise<any>) => void
 
-export default abstract class Controller extends Replaceable<State> {
+export default abstract class Controller extends Replaceable {
+    // public static symbolAroundAction = Symbol('aroundAction')
+
     public _aroundActions: Action[]
-    public _around() {}
+    public _around(context: Context, next: () => Promise<any>) {}
 }

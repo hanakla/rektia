@@ -1,10 +1,11 @@
 {
-  "name": "rectia",
+  "name": "rektia",
   "version": "0.0.6",
   "description": "Web application framework for Node.js",
   "author": "Ragg-",
   "license": "MIT",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
+  "types": "./src-server/index.ts",
   "bin": {
     "maya": "lib/bin/maya"
   },
@@ -12,7 +13,7 @@
     "node": ">=7.0.0"
   },
   "scripts": {
-    "dev": "gulp",
+    "dev": "tsc --watch",
     "build": "gulp prePubulish",
     "test": "mocha --compilers coffee:coffee-script/register --reporter spec --require coffee-script --require ./specs/_.coffee --colors specs/*-spec.{coffee,js}"
   },
@@ -28,7 +29,7 @@
     "@types/chokidar": "^1.6.0",
     "@types/eventemitter3": "^2.0.2",
     "@types/knex": "^0.0.50",
-    "@types/node": "^7.0.18",
+    "@types/node": "^7.0.27",
     "@types/pluralize": "^0.0.27",
     "@types/waterline": "^0.11.1",
     "babel-core": "^6.3.17",
