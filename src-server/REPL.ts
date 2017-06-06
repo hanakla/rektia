@@ -7,20 +7,37 @@ export default class REPL {
 
     constructor(app: Rektia)
     {
+        this._exposer = app.getExposer()
         this._server = repl.start({
             prompt: '▷ '
         })
 
-        this._exposer = app.getExposer()
+        this._exposeContext()
 
         this._server.defineCommand('routes', {
             help: 'Show routes',
-            action: () => {
-                const routes = this._exposer.getRoutes().map(routeInfo => {
-                    return `${routeInfo.httpMethod} ${routeInfo.route}\t\t=> ${routeInfo.controllerName}#${routeInfo.methodName}`
-                })
+            action: () => this._actionShowRoutes()
+        })
+    }
 
-                console.log(`${routes.join('\n')}\n`)
+    private _actionShowRoutes = () => {
+        const routes = this._exposer.getRoutes().map(routeInfo => {
+            return `${routeInfo.httpMethod} ${routeInfo.route}\t\t=> ${routeInfo.controllerName}#${routeInfo.methodName}`
+        })
+
+        console.log(`${routes.join('\n')}`)
+    }
+
+    private _exposeContext()
+    {
+        const _this = this
+
+        Object.defineProperties((this._server as any).context, {
+            route: {
+                get: () => _this._actionShowRoutes()
+            },
+            routes: {
+                get: () => _this._actionShowRoutes()
             }
         })
     }

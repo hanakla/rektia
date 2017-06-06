@@ -28,6 +28,7 @@
   "devDependencies": {
     "@types/chokidar": "^1.6.0",
     "@types/eventemitter3": "^2.0.2",
+    "@types/glob": "^5.0.30",
     "@types/knex": "^0.0.50",
     "@types/koa": "^2.0.39",
     "@types/koa-router": "^7.0.22",

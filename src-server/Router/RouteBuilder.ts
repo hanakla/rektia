@@ -48,6 +48,7 @@ export default class RouteBuilder {
             })
 
             this._middleware = r.routes()
+            console.log(r.routes())
         } catch (e) {
             console.log(e)
         }

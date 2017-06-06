@@ -1,7 +1,7 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import * as chokidar from 'chokidar'
-import glob from 'glob'
+import * as glob from 'glob'
 import {EventEmitter as EE3} from 'eventemitter3'
 
 import * as LoaderUtil from '../Utils/LoaderUtil'
@@ -31,7 +31,10 @@ export default class ControllerLoader {
         for (const controllerPath of controllers) {
             await this._loadController(controllerPath)
         }
+    }
 
+    public watch()
+    {
         const watchPath = path.join(this._options.controllerDir, '**/*')
         chokidar.watch(watchPath, {ignoreInitial: true}).on('all', this._handleFileChange)
     }
@@ -63,7 +66,7 @@ export default class ControllerLoader {
 
                 const controller = require(fullPath)
                 this._controllers[relative] = controller ?
-                    (controller.default ? controller.default : controller)
+                    (controller.__esModule ? (controller.default || controller) : controller)
                     : controller
 
                 if (reload) {

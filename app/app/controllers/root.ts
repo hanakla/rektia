@@ -8,7 +8,7 @@ import AppController from './AppController'
 // }
 
 export const index = (ctx) => {
-    ctx.body = 'hi'
+    ctx.body = ctx.config()
 }
 
 export function exported(ctx) {

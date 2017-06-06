@@ -5,6 +5,7 @@ import {Server} from 'http'
 import * as Knex from 'knex'
 import * as path from 'path'
 
+import Context from './Context'
 import REPL from './REPL'
 import ConfigLoader from './Loader/ConfigLoader'
 import ControllerLoader from './Loader/ControllerLoader'
@@ -28,6 +29,7 @@ export default class Rektia {
     private _configLoader: ConfigLoader
     private _controllerLoader: ControllerLoader
     private _router: RouteBuilder
+    private _config: any
 
     public environment: string
     public appRoot: string
@@ -40,6 +42,7 @@ export default class Rektia {
 
         this._configLoader = new ConfigLoader({
             configDir: path.join(this.appRoot, 'app/config'),
+            environment: this.environment
         })
 
         this._controllerLoader = new ControllerLoader({
@@ -51,8 +54,12 @@ export default class Rektia {
         if (this.environment === 'development') {
             this._repl = new REPL(this)
 
+            this._controllerLoader.watch()
             this._controllerLoader.onDidLoadController(this._handleControllerLoad)
             this._controllerLoader.onDidLoadError(console.error.bind(console))
+
+            this._configLoader.watch()
+            this._configLoader.onDidLoadConfig(this._handleConfigLoad)
         }
     }
 
@@ -62,6 +69,15 @@ export default class Rektia {
         this._router.buildFromControllerSet(controllerSet)
         console.log('\u001b[36m[Info] Controller reloaded\u001b[m');
     }, 1000)
+
+    private _handleConfigLoad = _.debounce(() => {
+        this._config = this._configLoader.getConfig()
+        console.log(`\u001b[36m[Info] Config reloaded\u001b[m`);
+    })
+
+    private _attachContext = (context: Context) => {
+        context.config = (path: string, defaultValue: any) => _.get(this._config, path, defaultValue)
+    }
 
     public getExposer()
     {
@@ -78,11 +94,13 @@ export default class Rektia {
     public async start()
     {
         await this._controllerLoader.load()
+        await this._configLoader.load()
 
         process.on('unhandledRejection', (e: Error) => {
             console.error(`\u001b[31m${e.stack}\u001b[m`)
         })
 
+        this._koa.use(this._attachContext)
         this._koa.use(this._router.middleware)
         this._koa.listen(9000)
     }
