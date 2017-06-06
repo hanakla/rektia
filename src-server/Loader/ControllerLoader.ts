@@ -2,10 +2,11 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as chokidar from 'chokidar'
 import glob from 'glob'
-import * as Module from 'module'
 import {EventEmitter as EE3} from 'eventemitter3'
+
 import * as LoaderUtil from '../Utils/LoaderUtil'
 import Controller from '../Controller'
+import Future from '../Future'
 
 type HandledEvents = 'add' | 'change' | 'unlink' | 'unlinkDir'
 
@@ -28,54 +29,57 @@ export default class ControllerLoader {
         const controllers = await LoaderUtil.readRequireableFiles(this._options.controllerDir, {recursive: true})
 
         for (const controllerPath of controllers) {
-            this._loadController(controllerPath)
+            await this._loadController(controllerPath)
         }
 
         const watchPath = path.join(this._options.controllerDir, '**/*')
         chokidar.watch(watchPath, {ignoreInitial: true}).on('all', this._handleFileChange)
     }
 
-    private _handleFileChange = (event: HandledEvents, fullPath: string) =>
+    private _handleFileChange = async (event: HandledEvents, fullPath: string) =>
     {
         const relative = path.relative(this._options.controllerDir, fullPath)
         let controller = this._controllers[relative]
 
         // if already loaded to replace
         if (event === 'add' || event === 'change') {
-            const Controller = this._loadController(fullPath, !!controller)
-            this._emitter.emit('did-load-controller')
-            // console.info(`Reload controller: ${relative} (${Controller && Controller.name})`)
+            await this._loadController(fullPath, !!controller)
         }
     }
 
-    private _loadController(fullPath: string, reload: boolean = false): typeof Controller | null
+    private _loadController(fullPath: string, reload: boolean = false): Future<typeof Controller>
     {
-        const relative = path.relative(this._options.controllerDir, fullPath)
-        const oldController = this._controllers[relative]
-        let state
+        return new Future<typeof Controller>((resolve, reject) => {
+            const relative = path.relative(this._options.controllerDir, fullPath)
+            const oldController = this._controllers[relative]
 
-        try {
-            if (reload) {
-                state = typeof oldController.__detach === 'function' ? oldController.__detach() : null
-                delete require('module')._cache[fullPath]
-            }
+            let state
 
-            const controller = require(fullPath)
-            this._controllers[relative] = controller ?
-                (controller.default ? controller.default : controller)
-                : controller
-
-            if (reload) {
-                if (this._controllers[relative].__attach) {
-                    this._controllers[relative].__attach(state)
+            try {
+                if (reload) {
+                    state = typeof oldController.__detach === 'function' ? oldController.__detach() : null
+                    delete require('module')._cache[fullPath]
                 }
-            }
-        } catch (e) {
-            this._controllers[relative] = oldController
-            console.error(e);
-        }
 
-        return this._controllers[relative]
+                const controller = require(fullPath)
+                this._controllers[relative] = controller ?
+                    (controller.default ? controller.default : controller)
+                    : controller
+
+                if (reload) {
+                    if (this._controllers[relative].__attach) {
+                        this._controllers[relative].__attach(state)
+                    }
+                }
+
+                this._emitter.emit('did-load-controller')
+                resolve(this._controllers[relative])
+            } catch (e) {
+                this._controllers[relative] = oldController
+                this._emitter.emit('did-load-error', e)
+                reject(e)
+            }
+        })
     }
 
     public getLoadedControllers(): {[relativePath: string]: typeof Controller}
@@ -86,6 +90,11 @@ export default class ControllerLoader {
     public onDidLoadController(listener: () => void): void
     {
         this._emitter.on('did-load-controller', listener)
+    }
+
+    public onDidLoadError(listener: (e: Error) => void): void
+    {
+        this._emitter.on('did-load-error', listener)
     }
 
     // /**

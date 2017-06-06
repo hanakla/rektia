@@ -29,6 +29,9 @@
     "@types/chokidar": "^1.6.0",
     "@types/eventemitter3": "^2.0.2",
     "@types/knex": "^0.0.50",
+    "@types/koa": "^2.0.39",
+    "@types/koa-router": "^7.0.22",
+    "@types/lodash": "^4.14.65",
     "@types/node": "^7.0.27",
     "@types/pluralize": "^0.0.27",
     "@types/waterline": "^0.11.1",
@@ -50,7 +53,6 @@
     "webpack": "^2.5.1"
   },
   "dependencies": {
-    "@types/koa": "^2.0.39",
     "browser-sync": "^2.11.0",
     "captains-log": "^0.11.11",
     "chokidar": "^1.7.0",
@@ -64,6 +66,7 @@
     "jade": "^1.11.0",
     "knex": "^0.13.0",
     "koa": "^2.2.0",
+    "koa-router": "^7.2.0",
     "lodash": "^4.17.4",
     "metacarattere": "^2.2.0",
     "pluralize": "^5.0.0",

@@ -1,21 +1,60 @@
+import * as _ from 'lodash'
+import * as KoaRouter from 'koa-router'
+
 import Controller from '../Controller'
+import * as RouterUtil from '../Utils/RouterUtil'
 import Context from '../Context'
 
+export interface RouteInfo {
+    httpMethod: string
+    route: string
+    controllerName: string
+    methodName: string
+}
+
 export default class RouteBuilder {
-    buildFromControllerSet(controllers: {[relativePath: string]: typeof Controller})
+    private _routeMaps: RouteInfo[] = []
+    private _router: KoaRouter
+    private _middleware: KoaRouter.IMiddleware
+
+    public routes(): RouteInfo[]
     {
-        Object.entries(controllers).reduce((memo, [path, controller]) => {
-            if (typeof controller === 'function') {
-                console.log(Object.getOwnPropertyNames(controller.prototype))
-            } else {
-                console.log('not func', controller)
-            }
-            return memo
-        }, [])
+        return _.cloneDeep(this._routeMaps)
     }
 
-    middleware = (context: Context, next: () => Promise<any>) =>
+    public buildFromControllerSet(controllers: {[relativePath: string]: typeof Controller})
     {
-        console.log('route')
+        try {
+            const r = this._router = new KoaRouter()
+            this._routeMaps = []
+
+            Object.entries(controllers).forEach(([path, controller]: [string, typeof Controller]) => {
+                if (!controller) return
+
+                const controllerName = RouterUtil.getControllerName(path, controller)
+                const methods = RouterUtil.lookUpHandlerMethods(controller)
+                const routes = RouterUtil.controllerPathToRoute(path, methods)
+
+                routes.forEach(([route, method, methodName]) => {
+                    this._routeMaps.push({
+                        httpMethod: 'ALL',
+                        route,
+                        controllerName,
+                        methodName
+                    })
+
+                    r.all(route, method)
+                })
+            })
+
+            this._middleware = r.routes()
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    public middleware = (context: Context, next: () => Promise<any>) =>
+    {
+        this._middleware(context, next)
     }
 }
