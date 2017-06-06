@@ -6,7 +6,7 @@ import {EventEmitter as EE3} from 'eventemitter3'
 
 import * as LoaderUtil from '../Utils/LoaderUtil'
 import Controller from '../Controller'
-import Future from '../Future'
+import Future from '../Utils/Future'
 
 type HandledEvents = 'add' | 'change' | 'unlink' | 'unlinkDir'
 
