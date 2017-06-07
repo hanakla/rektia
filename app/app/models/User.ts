@@ -6,9 +6,3 @@ export default class User extends Model<{
 }> {
     getAge(): number { return this.get('age') }
 }
-
-(async () => {
-    const u = new User
-    u.set()
-})()
-

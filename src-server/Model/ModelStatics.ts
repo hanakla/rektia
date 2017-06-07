@@ -11,9 +11,11 @@ type Criteria<T> = {
 export default class ModelStatics {
     public static _knex: Knex
 
+    public static set
+
     public static async find<T extends Model>(this: new () => T, id: number): Promise<T>
     {
-        const _this = (this as any as typeof Model)
+        const _this = this // (this as any as typeof Model)
         const tableName = ModelUtil.tableNameFromModel(_this)
 
         const record = await _this._knex.select().from(tableName).where('id', id).first()
@@ -28,7 +30,7 @@ export default class ModelStatics {
 
     public static　async findBy<T extends Model>(this: new () => T, criteria: Criteria<any>): Promise<T|null>
     {
-        const _this = (this as any as typeof Model)
+        const _this = this // (this as any as typeof Model)
         const tableName = ModelUtil.tableNameFromModel(_this)
 
         const record = await _this._knex.select().from(tableName).where(criteria).first()

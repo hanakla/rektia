@@ -4,5 +4,5 @@ import * as pluralize from 'pluralize'
 import Model from './Model'
 
 export const tableNameFromModel = (model: typeof Model) => {
-    return this.tableName || _.snakeCase(pluralize.plural(this.name))
+    return model.tableName || _.snakeCase(pluralize.plural(model.name))
 }

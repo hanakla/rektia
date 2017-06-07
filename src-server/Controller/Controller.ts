@@ -1,5 +1,5 @@
-import Context from './Context'
-import Replaceable from './Replaceable'
+import Context from '../Context'
+import Replaceable from '../Replaceable'
 
 interface State {}
 

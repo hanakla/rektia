@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import * as KoaRouter from 'koa-router'
 
-import Controller from '../Controller'
+import Controller from '../Controller/Controller'
 import * as RouterUtil from '../Utils/RouterUtil'
 import Context from '../Context'
 
@@ -16,6 +16,12 @@ export default class RouteBuilder {
     private _routeMaps: RouteInfo[] = []
     private _router: KoaRouter
     private _middleware: KoaRouter.IMiddleware
+
+    constructor()
+    {
+        this._router = new KoaRouter()
+        this._middleware = this._router.routes()
+    }
 
     public routes(): RouteInfo[]
     {
@@ -48,13 +54,12 @@ export default class RouteBuilder {
             })
 
             this._middleware = r.routes()
-            console.log(r.routes())
         } catch (e) {
             console.log(e)
         }
     }
 
-    public middleware = (context: Context, next: () => Promise<any>) =>
+    public middleware = async (context: Context, next: () => Promise<any>) =>
     {
         this._middleware(context, next)
     }

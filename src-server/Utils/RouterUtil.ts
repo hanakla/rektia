@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 import * as path from 'path'
-import {default as Controller, Action} from '../Controller'
+import {default as Controller, Action} from '../Controller/Controller'
 
 export const isControllerExtended = (subject: any) => {
     if (!subject) {

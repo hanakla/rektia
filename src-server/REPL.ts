@@ -33,12 +33,9 @@ export default class REPL {
         const _this = this
 
         Object.defineProperties((this._server as any).context, {
-            route: {
-                get: () => _this._actionShowRoutes()
-            },
-            routes: {
-                get: () => _this._actionShowRoutes()
-            }
+            routes: { get: () => _this._actionShowRoutes() },
+            exit: { get: () => process.exit(0) },
+            quit: { get: () => process.exit(0) }
         })
     }
 }

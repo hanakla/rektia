@@ -1,21 +1,23 @@
 {
     "compilerOptions": {
         "baseUrl": ".",
-        "outDir": "./dist",
+        "outDir": "dist",
         "allowJs": true,
-        "target": "es2015",
+        "target": "es2017",
         "module": "commonjs",
+        "jsx": "react",
         "moduleResolution": "node",
         "lib": [
             "es2015",
             "es2016",
             "es2017"
-        ]
+        ],
+        "paths": {
+            "@models/*": ["./app/models/*"],
+            "@views/*": ["./app/views/*"]
+        }
     },
-    "files": [
-        "./src-server/index"
-    ],
     "include": [
-        "./src-server/index"
+        "./app/**/*"
     ]
 }

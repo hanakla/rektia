@@ -86,7 +86,7 @@ export default class ConfigLoader {
 
     public getConfig()
     {
-        return _.cloneDeep(this.load)
+        return _.cloneDeep(this._configs)
     }
 
     public onDidLoadConfig(listener: () => void)
