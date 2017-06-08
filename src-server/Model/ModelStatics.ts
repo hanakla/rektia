@@ -9,12 +9,12 @@ type Criteria<T> = {
 }
 
 export default class ModelStatics {
-    static _knex: Knex = null
+    // private static _knex: Knex = null
 
     public static setConnection(_knex: Knex)
     {
-        console.log('Get connection')
-        ModelStatics._knex = _knex
+        console.log('Got')
+        Object.defineProperty(ModelStatics, '_knex', _knex)
     }
 
     public static async find<T extends Model>(this: new () => T, id: number): Promise<T>
@@ -23,8 +23,7 @@ export default class ModelStatics {
         const tableName = ModelUtil.tableNameFromModel(_this)
 
         console.log(ModelStatics)
-
-        const record = await ModelStatics._knex.select().from(tableName).where('id', id).first()
+        const record = await ModelStatics.knex.select().from(tableName).where('id', id).first()
 
         if (record == null) {
             throw new RecordNotFonundException(`Couldn't find ${tableName} with 'id'=${id}`)
@@ -39,8 +38,10 @@ export default class ModelStatics {
         const _this = (this as any as typeof Model)
         const tableName = ModelUtil.tableNameFromModel(_this)
 
-        const record = await ModelStatics._knex.select().from(tableName).where(criteria).first()
+        const record = await ModelStatics.knex.select().from(tableName).where(criteria).first()
 
         return record ? record : null
     }
+
+    private constructor() { }
 }

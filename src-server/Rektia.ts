@@ -124,7 +124,8 @@ export default class Rektia {
         await this._configLoader.load()
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        ModelStatics.setConnection(Knex(_.get(this._config, 'database')))
+        const knex = Knex(_.get(this._config, 'database'))
+        ModelStatics.setConnection(knex)
 
         this._koa.use(async (ctx: Context, next: () => Promise<any>) => {
             await next()
