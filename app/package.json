@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "@types/koa": "^2.0.39",
+    "@types/node": "^7.0.27",
+    "@types/react": "^15.0.27"
+  },
+  "dependencies": {
+    "pug": "^2.0.0-rc.2",
+    "react": "^15.5.4",
+    "typescript": "^2.3.4"
+  }
+}
