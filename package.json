@@ -1,7 +1,7 @@
 {
-  "name": "rektia",
+  "name": "@ragg/rektia",
   "version": "0.0.0",
-  "description": "Web application framework for Node.js",
+  "description": "A strong typed Node.js backend framework",
   "author": "Ragg-",
   "license": "MIT",
   "main": "dist/index.js",

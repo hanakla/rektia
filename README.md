@@ -1,5 +1,5 @@
 # Raktia
-A strong typed backend framework
+A strong typed Node.js backend framework
 
 <!--
 # Install
