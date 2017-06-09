@@ -8,7 +8,7 @@ import layout from '@views/layout/application'
 export default class Root extends AppController {
     async index(ctx: Context)
     {
-        await User.find(1)
+        const user = await User.find(1)
 
         ctx.body = layout({title: 'Rektia index'}, ([
             <style dangerouslySetInnerHTML={{__html: `
@@ -24,7 +24,7 @@ export default class Root extends AppController {
             </header>,
 
             <main>
-                <p>It works</p>
+                <p>It works, hello {user.get('display_name')}</p>
             </main>
         ]))
     }

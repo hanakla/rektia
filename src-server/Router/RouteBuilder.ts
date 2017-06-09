@@ -61,6 +61,6 @@ export default class RouteBuilder {
 
     public middleware = async (context: Context, next: () => Promise<any>) =>
     {
-        this._middleware(context, next)
+        await this._middleware(context, next)
     }
 }

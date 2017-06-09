@@ -107,13 +107,13 @@ export default class Rektia {
 
     public async start()
     {
-        process.on('uncaughtException', (e: Error) => {
-            console.error(`\u001b[31m${e.stack}\u001b[m`)
-        })
+        // process.on('uncaughtException', (e: Error) => {
+        //     console.error(`\u001b[31m${e.stack}\u001b[m`)
+        // })
 
-        process.on('unhandledRejection', (e: Error) => {
-            console.error(`\u001b[31m${e.stack}\u001b[m`)
-        })
+        // process.on('unhandledRejection', (e: Error) => {
+        //     console.error(`\u001b[31m${e.stack}\u001b[m`)
+        // })
 
         moduleAlias.addAliases({
             '@models': path.join(this.appRoot, 'app/models'),
@@ -124,8 +124,16 @@ export default class Rektia {
         await this._configLoader.load()
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        const knex = Knex(_.get(this._config, 'database'))
+        const knex = Knex(_.get(this._config, 'database.default'))
         ModelStatics.setConnection(knex)
+
+        this._koa.use(async (ctx: Context, next: () => Promise<any>) => {
+            try {
+                const res = await next()
+            } catch (e){
+                ctx.status = 500
+            }
+        })
 
         this._koa.use(async (ctx: Context, next: () => Promise<any>) => {
             await next()

@@ -5,7 +5,7 @@ import * as pluralize from 'pluralize'
 import ModelStatics from './ModelStatics'
 import * as ModelUtil from './ModelUtil'
 
-export default class Model<T = {[field: string]: any}>  extends ModelStatics {
+export default class Model<T = {[field: string]: any}> extends ModelStatics {
     /** Specified table name (optional) */
     public static tableName?: string
     public static primaryKey?: string = 'id'
@@ -22,7 +22,7 @@ export default class Model<T = {[field: string]: any}>  extends ModelStatics {
 
     public get<K extends keyof T>(field: K): T[K]
     {
-        return null
+        return this._fields[field]
     }
 
     public set(values: Partial<T>): this;
@@ -72,6 +72,11 @@ export default class Model<T = {[field: string]: any}>  extends ModelStatics {
     }
 
     async delete() {}
+
+    toJSON()
+    {
+        return _.clone(this._fields)
+    }
 }
 
 
