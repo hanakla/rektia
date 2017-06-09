@@ -107,13 +107,13 @@ export default class Rektia {
 
     public async start()
     {
-        // process.on('uncaughtException', (e: Error) => {
-        //     console.error(`\u001b[31m${e.stack}\u001b[m`)
-        // })
+        process.on('uncaughtException', (e: Error) => {
+            console.error(`\u001b[31m${e.stack}\u001b[m`)
+        })
 
-        // process.on('unhandledRejection', (e: Error) => {
-        //     console.error(`\u001b[31m${e.stack}\u001b[m`)
-        // })
+        process.on('unhandledRejection', (e: Error) => {
+            console.error(`\u001b[31m${e.stack}\u001b[m`)
+        })
 
         moduleAlias.addAliases({
             '@models': path.join(this.appRoot, 'app/models'),

@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import Rektia from './Rektia'
 
 export default Rektia

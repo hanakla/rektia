@@ -29,9 +29,15 @@ export default class Root extends AppController {
         ]))
     }
 
-    async exported(ctx: Context, next)
+    async exported(ctx: Context)
     {
-        await ctx.render('root/index.tsx', {title: 'Rektia'})
-        await next()
+        try {
+
+            ctx.type = 'application/json'
+            ctx.body = JSON.stringify(await User.find(1).items, null, 4)
+            // await ctx.render('root/index.tsx', {title: 'Rektia'})
+        } catch (e) {
+            console.log(e)
+        }
     }
 }

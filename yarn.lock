@@ -122,6 +122,10 @@
   version "15.0.27"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.27.tgz#d64ad424aa24a101fd50cdeae6eab3d53e65513d"
 
+"@types/reflect-metadata@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@types/reflect-metadata/-/reflect-metadata-0.0.5.tgz#9c042bfa9803d577aad4f57dfbca4b7cae4286fe"
+
 "@types/waterline@^0.11.1":
   version "0.11.1"
   resolved "https://registry.yarnpkg.com/@types/waterline/-/waterline-0.11.1.tgz#c33bbb53d8c46e9c2094f0adbc5fbe61f72b4b27"

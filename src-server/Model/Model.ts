@@ -5,7 +5,17 @@ import * as pluralize from 'pluralize'
 import ModelStatics from './ModelStatics'
 import * as ModelUtil from './ModelUtil'
 
-export default class Model<T = {[field: string]: any}> extends ModelStatics {
+export { Model as default }
+
+namespace Model {
+    export interface LazyCollection<T extends Model> extends Knex {
+        then(onFulfilled: (records: T[]) => void, onRejected): void
+    }
+
+    export type hasMany<T> = T
+}
+
+class Model<T = {[field: string]: any}> extends ModelStatics {
     /** Specified table name (optional) */
     public static tableName?: string
     public static primaryKey?: string = 'id'
@@ -78,9 +88,3 @@ export default class Model<T = {[field: string]: any}> extends ModelStatics {
         return _.clone(this._fields)
     }
 }
-
-
-// type P = {test: string};
-// const m = new Model<P>()
-
-// m.get('test')d
