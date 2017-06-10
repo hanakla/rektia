@@ -13,6 +13,7 @@ import ModelStatics from './Model/ModelStatics'
 import REPL from './REPL'
 import ConfigLoader from './Loader/ConfigLoader'
 import ControllerLoader from './Loader/ControllerLoader'
+import TypeGenerator from './Generator/TypeGenerator'
 import RenderMiddleware from './Middlewares/Render'
 import {default as RouteBuilder, RouteInfo} from './Router/RouteBuilder'
 
@@ -100,6 +101,11 @@ export default class Rektia {
         }
     }
 
+    public getConfig(path: string, defaultValue?: any): any
+    {
+        return _.get(this._config, path, defaultValue)
+    }
+
     public use(middleware: Koa.Middleware)
     {
         this._koa.use(middleware)
@@ -126,6 +132,10 @@ export default class Rektia {
 
         const knex = Knex(_.get(this._config, 'database.default'))
         ModelStatics.setConnection(knex)
+
+        new TypeGenerator(this, {
+            appDir: this.appRoot
+        }).generateTypeDefinition()
 
         this._koa.use(async (ctx: Context, next: () => Promise<any>) => {
             try {
