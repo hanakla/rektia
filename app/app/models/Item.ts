@@ -1,9 +1,5 @@
-import {Model} from 'rektia'
+import {Entity} from 'rektia'
+import User from '@models/User'
 
-export default class Item extends Model<app.Model.Item> {
-    // @Model.ManyToMany(User, {through: Table})
-    // friends: Model.LazyCollection
+export default class Item extends Entity<app.Entity.Item> {
 }
-
-// async () => (await User.find(1)).friends.map(() =>{})
-

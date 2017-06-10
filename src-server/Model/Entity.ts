@@ -2,22 +2,23 @@ import * as _ from 'lodash'
 import * as Knex from 'knex'
 import * as pluralize from 'pluralize'
 
-import ModelStatics from './ModelStatics'
+import Database from '../Database'
+import EntityStatics from './EntityStatics'
 import * as ModelUtil from './ModelUtil'
 
 import {hasManyType} from './Relation/HasMany'
 
-export { Model as default }
+export { Entity as default }
 
-namespace Model {
-    export interface LazyCollection<T extends Model> extends Knex {
+namespace Entity {
+    export interface LazyCollection<T extends Entity> extends Knex {
         then(onFulfilled: (records: T[]) => void, onRejected): void
     }
 
     export type hasMany<T> = hasManyType<T>
 }
 
-class Model<T = {[field: string]: any}> extends ModelStatics {
+class Entity<T = {[field: string]: any}> extends EntityStatics {
     /** Specified table name (optional) */
     public static tableName?: string
     public static primaryKey?: string = 'id'
@@ -58,18 +59,19 @@ class Model<T = {[field: string]: any}> extends ModelStatics {
 
     }
 
-    async save<T extends typeof Model>(): Promise<void>
+    async save<T extends typeof Entity>(): Promise<void>
     {
-        const clazz = this.constructor as typeof Model as T
-        const tableName = ModelUtil.tableNameFromModel((this as any).constructor as T)
+        const clazz = this.constructor as typeof Entity as T
+        const tableName = ModelUtil.tableNameFromEntity((this as any).constructor as T)
 
-        const insertQuery = ModelStatics._knex.insert(this._fields).where('id', (this._fields as any).id)
-        const updateQuery = ModelStatics._knex.update(this._fields)
+        const knex = Database.getConnection()
+        const insertQuery = knex.insert(this._fields).where('id', (this._fields as any).id)
+        const updateQuery = knex.update(this._fields)
         // const query = `${insertQuery.toString()} ON DUPLICATE KEY UPDATE ${updateQuery.toString()}`
         // ._knex.table()
 
         if (this._isNew) {
-            const [id] = await ModelStatics._knex
+            const [id] = await knex
                 .insert(this._fields)
                 .into(tableName)
                 .returning(clazz.primaryKey)
@@ -77,7 +79,7 @@ class Model<T = {[field: string]: any}> extends ModelStatics {
             ;(this._fields as any).id = id
             this._isNew = false
         } else {
-            await ModelStatics._knex(tableName)
+            await knex(tableName)
                 .update(this._fields)
                 .where({id: (this._fields as any).id})
         }

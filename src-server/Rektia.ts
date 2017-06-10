@@ -9,7 +9,7 @@ import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 
 import Context from './Context'
-import ModelStatics from './Model/ModelStatics'
+import {default as Database, DBConnectionOption} from './Database'
 import REPL from './REPL'
 import ConfigLoader from './Loader/ConfigLoader'
 import ControllerLoader from './Loader/ControllerLoader'
@@ -130,8 +130,11 @@ export default class Rektia {
         await this._configLoader.load()
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        const knex = Knex(_.get(this._config, 'database.default'))
-        ModelStatics.setConnection(knex)
+        // Connect to Database
+        const dbOptions = _.get(this._config, 'database')
+        _.each(dbOptions, (option: DBConnectionOption, name: string) => {
+            Database.createConnection(name, option)
+        })
 
         new TypeGenerator(this, {
             appDir: this.appRoot

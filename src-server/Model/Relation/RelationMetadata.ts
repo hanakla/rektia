@@ -1,13 +1,13 @@
-import Model from '../Model'
+import Entity from '../Entity'
 
 export interface IRelationMetadata {
-    hasManyProperties: Set<[string, typeof Model]>
+    hasManyProperties: Set<[string, typeof Entity]>
 }
 
 export default class RelationMetadata {
-    private static _metadata = new WeakMap<typeof Model, IRelationMetadata>()
+    private static _metadata = new WeakMap<typeof Entity, IRelationMetadata>()
 
-    public static addHasManyProperty(ModelClass: typeof Model, property: string, RelationModelClass: typeof Model)
+    public static addHasManyProperty(ModelClass: typeof Entity, property: string, RelationModelClass: typeof Entity)
     {
         if (!this._metadata.has(ModelClass)) {
             const relations: IRelationMetadata = {
@@ -27,7 +27,7 @@ export default class RelationMetadata {
         }
     }
 
-    public static getFor(ModelClass: typeof Model): IRelationMetadata
+    public static getFor(ModelClass: typeof Entity): IRelationMetadata
     {
         return this._metadata.get(ModelClass)
     }

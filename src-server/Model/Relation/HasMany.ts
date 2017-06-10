@@ -1,46 +1,47 @@
 import * as Knex from 'knex'
 import * as Promise from 'bluebird'
 
+import Database from '../../Database'
+import Entity from '../Entity'
 import {LazyCollection} from '../LazyCollection'
-import Model from '../Model'
-import ModelStatics from '../ModelStatics'
-import * as ModelUtils from '../ModelUtil'
 import RelationMetadata from './RelationMetadata'
+import * as ModelUtils from '../ModelUtil'
 
 export type hasManyType<T> = LazyCollection<T>
 
-export default function hasMany(RelationModel: typeof Model) {
-    return (belongsModel: Model, property: string) => {
-        const BelongsModel = belongsModel.constructor as typeof Model
-        console.log(RelationMetadata, property)
+export default function hasMany(RelationModel: typeof Entity) {
+    return (belongsModel: Entity, property: string) => {
+        const BelongsModel = belongsModel.constructor as typeof Entity
         RelationMetadata.addHasManyProperty(BelongsModel, property, RelationModel)
 
         Object.defineProperty(belongsModel, property, {
-            get (this: Model) {
-                const tableName = ModelUtils.tableNameFromModel(BelongsModel)
-                const havingTableName = ModelUtils.tableNameFromModel(RelationModel)
-                const foreignKey = ModelUtils.externalIdFieldNameFromModel(BelongsModel)
+            get (this: Entity) {
+                const tableName = ModelUtils.tableNameFromEntity(BelongsModel)
+                const havingTableName = ModelUtils.tableNameFromEntity(RelationModel)
+                const foreignKey = ModelUtils.externalIdFieldNameFromEntity(BelongsModel)
 
-                return ModelStatics._knex(havingTableName).select().where({[foreignKey]: this.get('id')})
+                const knex = Database.getConnection()
+                return knex(havingTableName).select().where({[foreignKey]: this.get('id')})
             }
         })
     }
 }
 
 export function hasManyForBuilder(
-    RelationModel: typeof Model,
+    RelationModel: typeof Entity,
     queryBuilder: Knex.QueryBuilder,
     property: string,
-    BelongsModel: typeof Model,
+    BelongsModel: typeof Entity,
     foreignKeyId: number
 ) {
     Object.defineProperty(queryBuilder, property, {
-        get (this: Model) {
-            const tableName = ModelUtils.tableNameFromModel(BelongsModel)
-            const havingTableName = ModelUtils.tableNameFromModel(RelationModel)
-            const foreignKey = ModelUtils.externalIdFieldNameFromModel(BelongsModel)
+        get (this: Entity) {
+            const tableName = ModelUtils.tableNameFromEntity(BelongsModel)
+            const havingTableName = ModelUtils.tableNameFromEntity(RelationModel)
+            const foreignKey = ModelUtils.externalIdFieldNameFromEntity(BelongsModel)
 
-            return ModelStatics._knex(havingTableName).select().where({[foreignKey]: foreignKeyId})
+            const knex = Database.getConnection()
+            return knex(havingTableName).select().where({[foreignKey]: foreignKeyId})
         }
     })
 }
