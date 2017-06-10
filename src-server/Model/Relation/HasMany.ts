@@ -1,9 +1,13 @@
 import * as Knex from 'knex'
+import * as Promise from 'bluebird'
 
+import {LazyCollection} from '../LazyCollection'
 import Model from '../Model'
 import ModelStatics from '../ModelStatics'
 import * as ModelUtils from '../ModelUtil'
 import RelationMetadata from './RelationMetadata'
+
+export type hasManyType<T> = LazyCollection<T>
 
 export default function hasMany(RelationModel: typeof Model) {
     return (belongsModel: Model, property: string) => {

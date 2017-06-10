@@ -5,6 +5,8 @@ import * as pluralize from 'pluralize'
 import ModelStatics from './ModelStatics'
 import * as ModelUtil from './ModelUtil'
 
+import {hasManyType} from './Relation/HasMany'
+
 export { Model as default }
 
 namespace Model {
@@ -12,7 +14,7 @@ namespace Model {
         then(onFulfilled: (records: T[]) => void, onRejected): void
     }
 
-    export type hasMany<T> = T
+    export type hasMany<T> = hasManyType<T>
 }
 
 class Model<T = {[field: string]: any}> extends ModelStatics {

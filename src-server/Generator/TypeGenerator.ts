@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import * as Knex from 'knex'
 import * as fs from 'fs'
 import * as path from 'path'
-import {listTablesAsync} from 'knex-list-db-table'
+import {listTablesAsync} from './KnexListDBTable'
 
 import Rektia from '../Rektia'
 import * as DBTypeGeneratorHelper from './DBTypeGeneratorHelper'
