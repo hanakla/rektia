@@ -12,12 +12,18 @@ export default class REPL {
             prompt: '▷ '
         })
 
+        this._server.on('exit', this.onREPLExit)
+
         this._exposeContext()
 
         this._server.defineCommand('routes', {
             help: 'Show routes',
             action: () => this._actionShowRoutes()
         })
+    }
+
+    private onREPLExit = () => {
+        process.exit(0)
     }
 
     private _actionShowRoutes = () => {

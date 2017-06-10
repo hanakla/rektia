@@ -34,6 +34,15 @@ export default class Root extends AppController {
         try {
 
             ctx.type = 'application/json'
+            // console.log()
+            await User.findBy({name: 'ragg'})
+
+            User.findBy({name: 'ragg'})
+
+            // .map(model => {
+            //     // console.log('hi')
+            //     return {}
+            // }) //.then(()=>{})
             ctx.body = JSON.stringify(await User.find(1).items, null, 4)
             // await ctx.render('root/index.tsx', {title: 'Rektia'})
         } catch (e) {

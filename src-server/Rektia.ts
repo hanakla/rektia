@@ -14,6 +14,7 @@ import REPL from './REPL'
 import ConfigLoader from './Loader/ConfigLoader'
 import ControllerLoader from './Loader/ControllerLoader'
 import TypeGenerator from './Generator/TypeGenerator'
+import ErrorHandlerMiddleware from './Middlewares/ErrorHandler'
 import RenderMiddleware from './Middlewares/Render'
 import {default as RouteBuilder, RouteInfo} from './Router/RouteBuilder'
 
@@ -140,13 +141,15 @@ export default class Rektia {
             appDir: this.appRoot
         }).generateTypeDefinition()
 
-        this._koa.use(async (ctx: Context, next: () => Promise<any>) => {
-            try {
-                const res = await next()
-            } catch (e){
-                ctx.status = 500
-            }
-        })
+        // this._koa.use(async (ctx: Context, next: () => Promise<any>) => {
+        //     try {
+        //         const res = await next()
+        //     } catch (e){
+        //         ctx.status = 500
+        //     }
+        // })
+
+        this._koa.use((new ErrorHandlerMiddleware()).middleware)
 
         this._koa.use(async (ctx: Context, next: () => Promise<any>) => {
             await next()

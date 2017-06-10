@@ -12,7 +12,7 @@ export interface DBConnectionOption {
 }
 
 export default class Database {
-    private static _connections: {[name: string]: Knex}
+    private static _connections: {[name: string]: Knex} = {}
 
     public static createConnection(name:string, options: DBConnectionOption)
     {
