@@ -164,6 +164,6 @@ export default class Rektia {
         this._koa.use(this._renderMiddleware.middleware)
         this._koa.use(this._router.middleware)
 
-        this._koa.listen(9000)
+        this._koa.listen(_.get(this._config, 'server.port'))
     }
 }
