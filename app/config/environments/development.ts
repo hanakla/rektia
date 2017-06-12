@@ -1,3 +1,7 @@
-module.exports = {
+export default {
+    database: {
+        default: {
 
+        }
+    }
 }

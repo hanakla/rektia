@@ -66,7 +66,7 @@ export default class ErrorHandlerMiddleware {
             await next()
         } catch (e) {
             ctx.type = 'text/html; charset=UTF-8'
-            ctx.body = ReactDOMServer.renderToString(await this._body(e))
+            ctx.body = ReactDOMServer.renderToStaticMarkup(await this._body(e))
         }
     }
 }
