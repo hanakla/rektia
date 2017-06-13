@@ -1,6 +1,7 @@
 import * as _ from 'lodash'
 import * as path from 'path'
 import {default as Controller, Action} from '../Controller/Controller'
+import RouteMetadata from '../Router/RouteMetadata'
 
 export const isControllerExtended = (subject: any) => {
     if (!subject) {
@@ -50,4 +51,8 @@ export const getControllerName = (relativePath: string, controller: typeof Contr
     const dir = pathInfo.dir ? `${pathInfo.dir}/` : ''
     const name = controller ? (controller.name || pathInfo.name) : pathInfo.name
     return `${dir}${name}`
+}
+
+export const findRegisteredActionInRouterStack = (stack: Action[]): Action|null => {
+    return stack.find(action => RouteMetadata.isRegisteredAction(action))
 }

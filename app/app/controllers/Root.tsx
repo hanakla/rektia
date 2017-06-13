@@ -1,14 +1,17 @@
 import * as React from 'react'
-import {Context} from '../../../'
+import {Context, Route} from '../../../'
 import AppController from './AppController'
 import User from '@models/User'
 
 import layout from '@views/layout/application'
 
 export default class Root extends AppController {
+    @Route.GET()
     async index(ctx: Context)
     {
-        const user = await User.find(1)
+        const {userId} = ctx.params
+
+        const user = await User.find(userId)
 
         ctx.body = layout({title: 'Rektia index'}, ([
             <style dangerouslySetInnerHTML={{__html: `
@@ -27,6 +30,13 @@ export default class Root extends AppController {
                 <p>It works, hello {user.get('display_name')}</p>
             </main>
         ]))
+    }
+
+    @Route.POST()
+    async post(ctx: Context)
+    {
+        console.log('POSTING')
+        ctx.body = 'DONE'
     }
 
     async exported(ctx: Context)

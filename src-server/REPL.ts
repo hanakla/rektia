@@ -1,4 +1,6 @@
 import * as repl from 'repl'
+import * as CLITable from 'cli-table2'
+
 import {default as Rektia, AppExposer} from './Rektia'
 
 export default class REPL {
@@ -27,11 +29,15 @@ export default class REPL {
     }
 
     private _actionShowRoutes = () => {
-        const routes = this._exposer.getRoutes().map(routeInfo => {
-            return `${routeInfo.httpMethod} ${routeInfo.route}\t\t=> ${routeInfo.controllerName}#${routeInfo.methodName}`
+        const table = new CLITable({
+            head: ['Method', 'Path', 'Handler'],
         })
 
-        console.log(`${routes.join('\n')}`)
+        const routes = this._exposer.getRoutes().map(routeInfo => {
+            table.push([routeInfo.httpMethod, routeInfo.route, `${routeInfo.controllerName}#${routeInfo.methodName}`])
+        })
+
+        console.log(table.toString())
     }
 
     private _exposeContext()
