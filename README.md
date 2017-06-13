@@ -1,4 +1,4 @@
-# Raktia
+# Rektia
 A strong typed Node.js backend framework
 
 <!--
