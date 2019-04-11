@@ -15,7 +15,6 @@ import ConfigLoader from './Loader/ConfigLoader'
 import ControllerLoader from './Loader/ControllerLoader'
 import TypeGenerator from './Generator/TypeGenerator'
 import ErrorHandlerMiddleware from './Middlewares/ErrorHandler'
-import RenderMiddleware from './Middlewares/Render'
 import {default as RouteBuilder, RouteInfo} from './Router/RouteBuilder'
 
 interface AppOption {
@@ -150,18 +149,7 @@ export default class Rektia {
         // })
 
         this._koa.use((new ErrorHandlerMiddleware()).middleware)
-
-        this._koa.use(async (ctx: Context, next: () => Promise<any>) => {
-            await next()
-
-            if (typeof ctx.body === 'object' && React.isValidElement(ctx.body)) {
-                ctx.type = 'text/html; charset=UTF-8'
-                ctx.body = ReactDOMServer.renderToStaticMarkup(ctx.body)
-            }
-        })
-
         this._koa.use(this._attachContext)
-        this._koa.use(this._renderMiddleware.middleware)
         this._koa.use(this._router.middleware)
 
         this._koa.listen(_.get(this._config, 'server.port'))

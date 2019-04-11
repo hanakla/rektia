@@ -5,7 +5,6 @@
         "allowJs": true,
         "target": "es2015",
         "module": "commonjs",
-        "jsx": "react",
         "moduleResolution": "node",
         "experimentalDecorators": true,
         "lib": [

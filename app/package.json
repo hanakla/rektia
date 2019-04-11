@@ -6,7 +6,6 @@
   },
   "dependencies": {
     "pug": "^2.0.0-rc.2",
-    "react": "^15.5.4",
     "typescript": "^2.3.4"
   }
 }

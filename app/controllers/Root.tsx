@@ -1,9 +1,6 @@
-import * as React from 'react'
 import {Context, Route} from '../../../'
 import AppController from './AppController'
 import User from '@models/User'
-
-import layout from '@views/layout/application'
 
 export default class Root extends AppController {
     @Route.GET()
