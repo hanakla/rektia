@@ -34,7 +34,7 @@ export default class Rektia {
     private _knex: Knex
     private _repl: REPL
     private _configLoader: ConfigLoader
-    private _controllerLoader: ControllerLoader
+    private controllerLoader: ControllerLoader
     private _router: RouteBuilder
     private _config: any
     private _renderMiddleware: RenderMiddleware
@@ -53,7 +53,7 @@ export default class Rektia {
             environment: this.environment
         })
 
-        this._controllerLoader = new ControllerLoader({
+        this.controllerLoader = new ControllerLoader({
             controllerDir: path.join(this.appRoot, 'app/controllers'),
         })
 
@@ -65,18 +65,18 @@ export default class Rektia {
         if (this.environment === 'development') {
             this._repl = new REPL(this)
 
-            this._controllerLoader.watch()
-            this._controllerLoader.onDidLoadController(this._handleControllerLoad)
-            this._controllerLoader.onDidLoadError(console.error.bind(console))
+            this.controllerLoader.watch()
+            this.controllerLoader.onDidLoadController(this.handleControllerLoad)
+            this.controllerLoader.onDidLoadError(console.error.bind(console))
 
             this._configLoader.watch()
             this._configLoader.onDidLoadConfig(this._handleConfigLoad)
         }
     }
 
-    private _handleControllerLoad = _.debounce(() =>
+    private handleControllerLoad = _.debounce(() =>
     {
-        const controllerSet = this._controllerLoader.getLoadedControllers()
+        const controllerSet = this.controllerLoader.getLoadedControllers()
         this._router.buildFromControllerSet(controllerSet)
         console.log('\u001b[36m[Info] Controller reloaded\u001b[m');
     }, 1000)
@@ -127,7 +127,7 @@ export default class Rektia {
             '@views': path.join(this.appRoot, 'app/views'),
         })
 
-        await this._controllerLoader.load()
+        await this.controllerLoader.load()
         await this._configLoader.load()
         await new Promise((resolve) => setTimeout(resolve, 1000))
 

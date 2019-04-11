@@ -12,13 +12,13 @@ type HandledEvents = 'add' | 'change' | 'unlink' | 'unlinkDir'
 
 export default class ControllerLoader {
     private _emitter = new EE3()
-    private _controllers: {[relativePath: string]: typeof Controller} = {}
+    private controllers: {[relativePath: string]: typeof Controller} = {}
 
     /**
      * @class ConfigLoader
      * @constructor
      */
-    constructor(private _options: {controllerDir: string}) {　}
+    constructor(private options: {controllerDir: string}) {　}
 
     /**
      * Load config files
@@ -26,35 +26,35 @@ export default class ControllerLoader {
      */
     public async load()
     {
-        const controllers = await LoaderUtil.readRequireableFiles(this._options.controllerDir, {recursive: true})
+        const controllers = await LoaderUtil.readRequireableFiles(this.options.controllerDir, {recursive: true})
 
         for (const controllerPath of controllers) {
-            await this._loadController(controllerPath)
+            await this.loadController(controllerPath)
         }
     }
 
     public watch()
     {
-        const watchPath = path.join(this._options.controllerDir, '**/*')
-        chokidar.watch(watchPath, {ignoreInitial: true}).on('all', this._handleFileChange)
+        const watchPath = path.join(this.options.controllerDir, '**/*')
+        chokidar.watch(watchPath, {ignoreInitial: true}).on('all', this.handleFileChange)
     }
 
-    private _handleFileChange = async (event: HandledEvents, fullPath: string) =>
+    private handleFileChange = async (event: HandledEvents, fullPath: string) =>
     {
-        const relative = path.relative(this._options.controllerDir, fullPath)
-        let controller = this._controllers[relative]
+        const relative = path.relative(this.options.controllerDir, fullPath)
+        let controller = this.controllers[relative]
 
         // if already loaded to replace
         if (event === 'add' || event === 'change') {
-            await this._loadController(fullPath, !!controller)
+            await this.loadController(fullPath, !!controller)
         }
     }
 
-    private _loadController(fullPath: string, reload: boolean = false): Future<typeof Controller>
+    private loadController(fullPath: string, reload: boolean = false): Promise<typeof Controller>
     {
-        return new Future<typeof Controller>((resolve, reject) => {
-            const relative = path.relative(this._options.controllerDir, fullPath)
-            const oldController = this._controllers[relative]
+        return new Promise<typeof Controller>((resolve, reject) => {
+            const relative = path.relative(this.options.controllerDir, fullPath)
+            const oldController = this.controllers[relative]
 
             let state
 
@@ -65,20 +65,20 @@ export default class ControllerLoader {
                 }
 
                 const controller = require(fullPath)
-                this._controllers[relative] = controller ?
+                this.controllers[relative] = controller ?
                     (controller.__esModule ? (controller.default || controller) : controller)
                     : controller
 
                 if (reload) {
-                    if (this._controllers[relative].__attach) {
-                        this._controllers[relative].__attach(state)
+                    if (this.controllers[relative].__attach) {
+                        this.controllers[relative].__attach(state)
                     }
                 }
 
                 this._emitter.emit('did-load-controller')
-                resolve(this._controllers[relative])
+                resolve(this.controllers[relative])
             } catch (e) {
-                this._controllers[relative] = oldController
+                this.controllers[relative] = oldController
                 this._emitter.emit('did-load-error', e)
                 reject(e)
             }
@@ -87,7 +87,7 @@ export default class ControllerLoader {
 
     public getLoadedControllers(): {[relativePath: string]: typeof Controller}
     {
-        return {...this._controllers}
+        return {...this.controllers}
     }
 
     public onDidLoadController(listener: () => void): void
