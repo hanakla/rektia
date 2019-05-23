@@ -1,5 +1,7 @@
-import {Entity} from 'rektia'
-import User from '@models/User'
+import { Entity, PrimaryGeneratedColumn } from "typeorm";
 
-export default class Item extends Entity<app.Entity.Item> {
+@Entity()
+export class Item {
+  @PrimaryGeneratedColumn()
+  id: number;
 }

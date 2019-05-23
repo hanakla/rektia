@@ -1,8 +1,9 @@
 {
-  "name": "rektia",
+  "name": "@ragg/rektia",
   "version": "0.0.0",
   "description": "Strong typed API framework",
   "main": "index.js",
+  "types": "src/index.ts",
   "repository": "https://github.com/ra-gg/rektia",
   "author": "Mitsuka Hanakura",
   "license": "MIT",
@@ -50,6 +51,7 @@
     "module-alias": "^2.0.0",
     "pluralize": "^5.0.0",
     "ts-node": "^3.0.6",
+    "typeorm": "^0.2.17",
     "url-join": "^2.0.2",
     "url-parse": "^1.0.5",
     "wildgeese": "0.0.6",

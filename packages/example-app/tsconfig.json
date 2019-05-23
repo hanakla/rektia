@@ -1,23 +1,17 @@
 {
-    "compilerOptions": {
-        "baseUrl": ".",
-        "outDir": "dist",
-        "allowJs": true,
-        "target": "es2015",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "experimentalDecorators": true,
-        "lib": [
-            "es2015",
-            "es2016",
-            "es2017"
-        ],
-        "paths": {
-            "@models/*": ["./app/models/*"],
-            "@views/*": ["./app/views/*"]
-        }
-    },
-    "include": [
-        "./app/**/*"
-    ]
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist",
+    "allowJs": true,
+    "target": "es2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "lib": ["es2015", "es2016", "es2017"],
+    "paths": {
+      "@models/*": ["./models/*"],
+      "@views/*": ["./views/*"]
+    }
+  },
+  "include": ["./app/**/*"]
 }

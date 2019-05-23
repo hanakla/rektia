@@ -1,9 +1,11 @@
-import {Entity} from 'rektia'
-import Item from '@models/Item'
+import { Entity, Column, OneToMany } from "typeorm";
+import Item from "./Item";
 
-export {User as default}
+@Entity()
+export class User {
+  @Column()
+  displayName: string;
 
-class User extends Entity<app.Entity.User> {
-    @Entity.hasMany(Item)
-    items: Entity.hasMany<app.Entity.Item>
+  @OneToMany(type => Item, item => item.user)
+  items: Item[];
 }
