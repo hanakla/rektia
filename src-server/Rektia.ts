@@ -1,21 +1,19 @@
 import * as Koa from 'koa'
 import * as _ from 'lodash'
-import {ListenOptions} from 'net'
-import {Server} from 'http'
+import { ListenOptions } from 'net'
+import { Server } from 'http'
 import * as Knex from 'knex'
 import * as path from 'path'
 import * as moduleAlias from 'module-alias'
-import * as React from 'react'
-import * as ReactDOMServer from 'react-dom/server'
 
 import Context from './Context'
-import {default as Database, DBConnectionOption} from './Database'
+import { default as Database, DBConnectionOption } from './Database'
 import REPL from './REPL'
 import ConfigLoader from './Loader/ConfigLoader'
 import ControllerLoader from './Loader/ControllerLoader'
 import TypeGenerator from './Generator/TypeGenerator'
 import ErrorHandlerMiddleware from './Middlewares/ErrorHandler'
-import {default as RouteBuilder, RouteInfo} from './Router/RouteBuilder'
+import { default as RouteBuilder, RouteInfo } from './Router/RouteBuilder'
 
 interface AppOption {
     environment: string
@@ -36,13 +34,11 @@ export default class Rektia {
     private controllerLoader: ControllerLoader
     private _router: RouteBuilder
     private _config: any
-    private _renderMiddleware: RenderMiddleware
 
     public environment: string
     public appRoot: string
 
-    constructor(private _options: Partial<AppOption> = {})
-    {
+    constructor(private _options: Partial<AppOption> = {}) {
         this._koa = new Koa()
         this.environment = _options.environment || 'development'
         this.appRoot = _options.appRoot || process.cwd()
@@ -57,9 +53,6 @@ export default class Rektia {
         })
 
         this._router = new RouteBuilder()
-        this._renderMiddleware = new RenderMiddleware({
-            viewPath: path.join(this.appRoot, 'app/views')
-        })
 
         if (this.environment === 'development') {
             this._repl = new REPL(this)
@@ -73,8 +66,7 @@ export default class Rektia {
         }
     }
 
-    private handleControllerLoad = _.debounce(() =>
-    {
+    private handleControllerLoad = _.debounce(() => {
         const controllerSet = this.controllerLoader.getLoadedControllers()
         this._router.buildFromControllerSet(controllerSet)
         console.log('\u001b[36m[Info] Controller reloaded\u001b[m');
@@ -94,25 +86,21 @@ export default class Rektia {
         await next()
     }
 
-    public getExposer()
-    {
+    public getExposer() {
         return {
-            getRoutes:() => this._router.routes()
+            getRoutes: () => this._router.routes()
         }
     }
 
-    public getConfig(path: string, defaultValue?: any): any
-    {
+    public getConfig(path: string, defaultValue?: any): any {
         return _.get(this._config, path, defaultValue)
     }
 
-    public use(middleware: Koa.Middleware)
-    {
+    public use(middleware: Koa.Middleware) {
         this._koa.use(middleware)
     }
 
-    public async start()
-    {
+    public async start() {
         process.on('uncaughtException', (e: Error) => {
             console.error(`\u001b[31m${e.stack}\u001b[m`)
         })

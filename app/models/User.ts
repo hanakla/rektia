@@ -1,9 +1,7 @@
-import {Entity} from 'rektia'
-import Item from '@models/Item'
+import { Entity } from '@ragg/rektia'
+import Item from '../models/Item'
 
-export {User as default}
-
-class User extends Entity<app.Entity.User> {
+export class User extends Entity<{ id: string, name: string }> {
     @Entity.hasMany(Item)
     items: Entity.hasMany<app.Entity.Item>
 }

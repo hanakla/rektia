@@ -1,1 +1,3 @@
-import {Model} from 'waterline'
+export class Form {
+
+}

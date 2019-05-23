@@ -12,9 +12,9 @@ import Replaceable from '../Replaceable'
  */
 export type Action = (ctx: Context, next?: () => Promise<any>) => void
 
-export default abstract class Controller extends Replaceable {
+export default abstract class Controller {
     // public static symbolAroundAction = Symbol('aroundAction')
 
     public _aroundActions: Action[]
-    public _around(context: Context, next: () => Promise<any>) {}
+    public _around(context: Context, next: () => Promise<any>) { }
 }

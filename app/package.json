@@ -5,6 +5,7 @@
     "@types/react": "^15.0.27"
   },
   "dependencies": {
+    "@ragg/rektia": "../",
     "pug": "^2.0.0-rc.2",
     "typescript": "^2.3.4"
   }

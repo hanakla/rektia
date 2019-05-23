@@ -2,7 +2,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as chokidar from 'chokidar'
 import * as glob from 'glob'
-import {EventEmitter as EE3} from 'eventemitter3'
+import { EventEmitter as EE3 } from 'eventemitter3'
 
 import * as LoaderUtil from '../Utils/LoaderUtil'
 import Controller from '../Controller/Controller'
@@ -12,35 +12,32 @@ type HandledEvents = 'add' | 'change' | 'unlink' | 'unlinkDir'
 
 export default class ControllerLoader {
     private _emitter = new EE3()
-    private controllers: {[relativePath: string]: typeof Controller} = {}
+    private controllers: { [relativePath: string]: typeof Controller } = {}
 
     /**
      * @class ConfigLoader
      * @constructor
      */
-    constructor(private options: {controllerDir: string}) {　}
+    constructor(private options: { controllerDir: string }) { }
 
     /**
      * Load config files
      * @method load
      */
-    public async load()
-    {
-        const controllers = await LoaderUtil.readRequireableFiles(this.options.controllerDir, {recursive: true})
+    public async load() {
+        const controllers = await LoaderUtil.readRequireableFiles(this.options.controllerDir, { recursive: true })
 
         for (const controllerPath of controllers) {
             await this.loadController(controllerPath)
         }
     }
 
-    public watch()
-    {
+    public watch() {
         const watchPath = path.join(this.options.controllerDir, '**/*')
-        chokidar.watch(watchPath, {ignoreInitial: true}).on('all', this.handleFileChange)
+        chokidar.watch(watchPath, { ignoreInitial: true }).on('all', this.handleFileChange)
     }
 
-    private handleFileChange = async (event: HandledEvents, fullPath: string) =>
-    {
+    private handleFileChange = async (event: HandledEvents, fullPath: string) => {
         const relative = path.relative(this.options.controllerDir, fullPath)
         let controller = this.controllers[relative]
 
@@ -50,8 +47,7 @@ export default class ControllerLoader {
         }
     }
 
-    private loadController(fullPath: string, reload: boolean = false): Promise<typeof Controller>
-    {
+    private loadController(fullPath: string, reload: boolean = false): Promise<typeof Controller> {
         return new Promise<typeof Controller>((resolve, reject) => {
             const relative = path.relative(this.options.controllerDir, fullPath)
             const oldController = this.controllers[relative]
@@ -59,21 +55,12 @@ export default class ControllerLoader {
             let state
 
             try {
-                if (reload) {
-                    state = typeof oldController.__detach === 'function' ? oldController.__detach() : null
-                    delete require('module')._cache[fullPath]
-                }
+                delete require('module')._cache[fullPath]
 
                 const controller = require(fullPath)
                 this.controllers[relative] = controller ?
                     (controller.__esModule ? (controller.default || controller) : controller)
                     : controller
-
-                if (reload) {
-                    if (this.controllers[relative].__attach) {
-                        this.controllers[relative].__attach(state)
-                    }
-                }
 
                 this._emitter.emit('did-load-controller')
                 resolve(this.controllers[relative])
@@ -85,18 +72,15 @@ export default class ControllerLoader {
         })
     }
 
-    public getLoadedControllers(): {[relativePath: string]: typeof Controller}
-    {
-        return {...this.controllers}
+    public getLoadedControllers(): { [relativePath: string]: typeof Controller } {
+        return { ...this.controllers }
     }
 
-    public onDidLoadController(listener: () => void): void
-    {
+    public onDidLoadController(listener: () => void): void {
         this._emitter.on('did-load-controller', listener)
     }
 
-    public onDidLoadError(listener: (e: Error) => void): void
-    {
+    public onDidLoadError(listener: (e: Error) => void): void {
         this._emitter.on('did-load-error', listener)
     }
 

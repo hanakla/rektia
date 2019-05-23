@@ -1,5 +1,5 @@
-import {Entity} from 'rektia'
-import User from '@models/User'
+import { Entity } from '@ragg/rektia'
+import { User } from './User'
 
-export default class Item extends Entity<app.Entity.Item> {
+export class Item extends Entity<app.Entity.Item> {
 }

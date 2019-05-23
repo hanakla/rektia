@@ -13,9 +13,9 @@
             "es2017"
         ],
         "paths": {
-            "@models/*": ["./app/models/*"],
-            "@views/*": ["./app/views/*"]
-        }
+            // "@models/*": ["./app/models/*"],
+            // "@views/*": ["./app/views/*"]
+        },
     },
     "include": [
         "./app/**/*"
