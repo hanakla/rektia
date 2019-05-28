@@ -1,17 +1,12 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "outDir": "dist",
-    "allowJs": true,
-    "target": "es2015",
-    "module": "commonjs",
-    "moduleResolution": "node",
     "experimentalDecorators": true,
-    "lib": ["es2015", "es2016", "es2017"],
+    "emitDecoratorMetadata": true,
     "paths": {
-      "@models/*": ["./models/*"],
-      "@views/*": ["./views/*"]
+      "models/*": ["./models/*"],
+      "models": ["./models/*"]
     }
   },
-  "include": ["./app/**/*"]
+  "files": ["./app.ts"]
 }

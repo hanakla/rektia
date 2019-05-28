@@ -2,14 +2,18 @@
   "private": true,
   "name": "rektia-example",
   "version": "0.0.0",
+  "scripts": {
+    "start": "ts-node -T app.ts"
+  },
   "devDependencies": {
-    "@types/koa": "^2.0.39",
-    "@types/node": "^7.0.27",
-    "@types/react": "^15.0.27"
+    "@types/koa": "2.0.48",
+    "@types/node": "12.0.2",
+    "@types/react": "16.8.18"
   },
   "dependencies": {
     "@ragg/rektia": "*",
     "pug": "^2.0.0-rc.2",
-    "typescript": "^2.3.4"
+    "sqlite3": "^4.0.8",
+    "typescript": "3.4.5"
   }
 }

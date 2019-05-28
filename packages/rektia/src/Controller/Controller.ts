@@ -1,5 +1,4 @@
-import Context from '../Context'
-import Replaceable from '../Replaceable'
+import Context from "../Context";
 
 /**
  * Controller
@@ -10,11 +9,11 @@ import Replaceable from '../Replaceable'
  * - <Matched to route action>
  * - _after()
  */
-export type Action = (ctx: Context, next?: () => Promise<any>) => void
+export type Action = (ctx: Context, next?: () => Promise<any>) => void;
 
-export default abstract class Controller extends Replaceable {
-    // public static symbolAroundAction = Symbol('aroundAction')
+export default abstract class Controller {
+  // public static symbolAroundAction = Symbol('aroundAction')
 
-    public _aroundActions: Action[]
-    public _around(context: Context, next: () => Promise<any>) {}
+  public _aroundActions: Action[];
+  public _around(context: Context, next: () => Promise<any>) {}
 }

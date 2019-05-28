@@ -9,9 +9,6 @@
   "workspaces": [
     "packages/*"
   ],
-  "bin": {
-    "rektia": "lib/bin/rektia"
-  },
   "engines": {
     "node": ">=8.0.0"
   },

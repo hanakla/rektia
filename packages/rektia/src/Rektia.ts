@@ -1,20 +1,14 @@
-import * as Koa from "koa";
-import * as _ from "lodash";
-import { ListenOptions } from "net";
-import { Server } from "http";
-import * as Knex from "knex";
-import * as path from "path";
-import * as moduleAlias from "module-alias";
-import * as React from "react";
-import * as ReactDOMServer from "react-dom/server";
+import Koa from "koa";
+import _ from "lodash";
+import path from "path";
+import moduleAlias from "module-alias";
+import { createConnections } from "typeorm";
 
 import Context from "./Context";
-import { default as Database, DBConnectionOption } from "./Database";
 import REPL from "./REPL";
 import ConfigLoader from "./Loader/ConfigLoader";
 import ControllerLoader from "./Loader/ControllerLoader";
-import TypeGenerator from "./Generator/TypeGenerator";
-import ErrorHandlerMiddleware from "./Middlewares/ErrorHandler";
+import { ErrorHandlerMiddleware } from "./Middlewares/ErrorHandler";
 import { default as RouteBuilder, RouteInfo } from "./Router/RouteBuilder";
 
 interface AppOption {
@@ -29,88 +23,81 @@ export interface AppExposer {
 export class Rektia {
   public static app: Rektia;
 
-  private _koa: Koa;
-  private _knex: Knex;
-  private _repl: REPL;
-  private _configLoader: ConfigLoader;
-  private controllerLoader: ControllerLoader;
-  private _router: RouteBuilder;
-  private _config: any;
+  private readonly server: Koa;
+  private readonly repl: REPL;
+  private readonly configLoader: ConfigLoader;
+  private readonly controllerLoader: ControllerLoader;
+  private readonly router: RouteBuilder;
 
-  public environment: string;
-  public appRoot: string;
+  public readonly environment: string;
+  public readonly appRoot: string;
 
-  constructor(private _options: Partial<AppOption> = {}) {
+  constructor(private options: Partial<AppOption> = {}) {
     if (Rektia.app) {
       throw new Error("Rektia already started.");
     }
 
     Rektia.app = this;
-    this._koa = new Koa();
-    this.environment = _options.environment || "development";
-    this.appRoot = _options.appRoot || process.cwd();
 
-    this._configLoader = new ConfigLoader({
+    this.server = new Koa();
+    this.environment = options.environment || "development";
+    this.appRoot = options.appRoot || process.cwd();
+
+    this.configLoader = new ConfigLoader({
       configDir: path.join(this.appRoot, "config"),
       environment: this.environment
     });
 
     this.controllerLoader = new ControllerLoader({
-      controllerDir: path.join(this.appRoot, "app/controllers")
+      controllerDir: path.join(this.appRoot, "controllers")
     });
 
-    this._router = new RouteBuilder();
-    this._renderMiddleware = new RenderMiddleware({
-      viewPath: path.join(this.appRoot, "app/views")
-    });
+    this.router = new RouteBuilder();
 
     if (this.environment === "development") {
-      this._repl = new REPL(this);
+      this.repl = new REPL(this);
 
       this.controllerLoader.watch();
       this.controllerLoader.onDidLoadController(this.handleControllerLoad);
       this.controllerLoader.onDidLoadError(console.error.bind(console));
 
-      this._configLoader.watch();
-      this._configLoader.onDidLoadConfig(this._handleConfigLoad);
+      this.configLoader.watch();
+      this.configLoader.onDidLoadConfig(this.handleConfigLoad);
     }
   }
 
   private handleControllerLoad = _.debounce(() => {
     const controllerSet = this.controllerLoader.getLoadedControllers();
-    this._router.buildFromControllerSet(controllerSet);
+    this.router.buildFromControllerSet(controllerSet);
     console.log("\u001b[36m[Info] Controller reloaded\u001b[m");
   }, 1000);
 
-  private _handleConfigLoad = _.debounce(() => {
-    this._config = this._configLoader.getConfig();
+  private handleConfigLoad = _.debounce(() => {
     console.log("\u001b[36m[Info] Config reloaded\u001b[m");
   }, 1000);
 
-  private _attachContext = async (
+  private attachContext = async (
     context: Context,
     next: () => Promise<any>
   ) => {
-    context.config = (path: string, defaultValue: any) => {
-      console.log(this._config);
-      _.get(this._config, path, defaultValue);
-    };
+    context.config = (path: string, defaultValue: any) =>
+      this.configLoader.get(path, defaultValue);
 
     await next();
   };
 
   public getExposer() {
     return {
-      getRoutes: () => this._router.routes()
+      getRoutes: () => this.router.routes()
     };
   }
 
   public getConfig(path: string, defaultValue?: any): any {
-    return _.get(this._config, path, defaultValue);
+    return this.configLoader.get(path, defaultValue);
   }
 
   public use(middleware: Koa.Middleware) {
-    this._koa.use(middleware);
+    this.server.use(middleware);
   }
 
   public async start() {
@@ -123,36 +110,37 @@ export class Rektia {
     });
 
     moduleAlias.addAliases({
-      "@models": path.join(this.appRoot, "app/models"),
-      "@views": path.join(this.appRoot, "app/views")
+      // "@models": path.join(this.appRoot, "models"),
+      // "@views": path.join(this.appRoot, "views")
     });
 
-    await this.controllerLoader.load();
-    await this._configLoader.load();
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Connect to database
+    await Promise.all([this.controllerLoader.load(), this.configLoader.load()]);
 
-    // Connect to Database
-    const dbOptions = _.get(this._config, "database");
-    _.each(dbOptions, (option: DBConnectionOption, name: string) => {
-      Database.createConnection(name, option);
-    });
+    const databases = Object.entries(this.configLoader.get("database")).map(
+      ([name, option]: [string, any]) => ({ name, ...option })
+    );
 
-    new TypeGenerator(this, {
-      appDir: this.appRoot
-    }).generateTypeDefinition();
+    await createConnections(databases);
 
-    // this._koa.use(async (ctx: Context, next: () => Promise<any>) => {
-    //     try {
-    //         const res = await next()
-    //     } catch (e){
-    //         ctx.status = 500
-    //     }
-    // })
+    this.router.buildFromControllerSet(
+      this.controllerLoader.getLoadedControllers()
+    );
 
-    this._koa.use(new ErrorHandlerMiddleware().middleware);
-    this._koa.use(this._attachContext);
-    this._koa.use(this._router.middleware);
+    // new TypeGenerator(this, {
+    //   appDir: this.appRoot
+    // }).generateTypeDefinition();
 
-    this._koa.listen(_.get(this._config, "server.port"));
+    this.server.use(new ErrorHandlerMiddleware().middleware);
+    this.server.use(this.attachContext);
+    this.server.use(this.router.middleware);
+
+    const port = this.configLoader.get("server.port");
+    console.log(
+      `\u001b[36m[Info] Rektia started on port ${port} in mode ${
+        this.environment
+      }\u001b[m`
+    );
+    this.server.listen(port);
   }
 }

@@ -1,7 +1,6 @@
-import * as _ from "lodash";
-import * as path from "path";
-import * as chokidar from "chokidar";
-import * as glob from "glob";
+import _ from "lodash";
+import path from "path";
+import chokidar from "chokidar";
 import * as LoaderUtil from "./LoaderUtil";
 import { EventEmitter as EE3 } from "eventemitter3";
 
@@ -14,7 +13,7 @@ type HandledEvents = "add" | "change" | "unlink" | "unlinkDir";
 
 export default class ConfigLoader {
   private _emitter = new EE3();
-  private _configs: any = {};
+  private configs: any = {};
 
   /**
    * @class ConfigLoader
@@ -35,10 +34,10 @@ export default class ConfigLoader {
       }
     );
 
-    this._configs = {};
+    this.configs = {};
 
     for (const filePath of configFiles) {
-      await this._loadConfig(filePath);
+      await this.loadConfig(filePath);
     }
   }
 
@@ -46,22 +45,17 @@ export default class ConfigLoader {
     const watchPath = path.join(this._options.configDir, "**/*");
     chokidar
       .watch(watchPath, { ignoreInitial: true })
-      .on("all", this._handleFileChange);
+      .on("all", this.handleFileChange);
   }
 
-  private _handleFileChange = async (
-    event: HandledEvents,
-    fullPath: string
-  ) => {
-    const relative = path.relative(this._options.configDir, fullPath);
-
+  private handleFileChange = async (event: HandledEvents, fullPath: string) => {
     // if already loaded to replace
     if (event === "add" || event === "change") {
-      await this._loadConfig(fullPath);
+      await this.loadConfig(fullPath);
     }
   };
 
-  private async _loadConfig(fullPath: string) {
+  private async loadConfig(fullPath: string) {
     try {
       const relative = path.relative(this._options.configDir, fullPath);
       const pathInfo = path.parse(relative);
@@ -81,7 +75,7 @@ export default class ConfigLoader {
         Object.assign(_storage, _.cloneDeep(config));
       }
 
-      this._configs[namespace] = _storage;
+      this.configs[namespace] = _storage;
       this._emitter.emit("did-load-config");
     } catch (e) {
       console.error(e);
@@ -89,7 +83,11 @@ export default class ConfigLoader {
   }
 
   public getConfig() {
-    return _.cloneDeep(this._configs);
+    return _.cloneDeep(this.configs);
+  }
+
+  public get(path: string, defaultValue?: any) {
+    return _.get(this.configs, path, defaultValue);
   }
 
   public onDidLoadConfig(listener: () => void) {

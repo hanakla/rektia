@@ -2,7 +2,7 @@ import * as path from "path";
 import * as fs from "fs";
 import * as chokidar from "chokidar";
 import * as glob from "glob";
-import { EventEmitter as EE3 } from "eventemitter3";
+import EventEmitter from "eventemitter3";
 
 import * as LoaderUtil from "./LoaderUtil";
 import Controller from "../Controller/Controller";
@@ -11,7 +11,7 @@ import Future from "../Utils/Future";
 type HandledEvents = "add" | "change" | "unlink" | "unlinkDir";
 
 export default class ControllerLoader {
-  private _emitter = new EE3();
+  private emitter = new EventEmitter();
   private controllers: { [relativePath: string]: typeof Controller } = {};
 
   constructor(private options: { controllerDir: string }) {}
@@ -35,6 +35,18 @@ export default class ControllerLoader {
       .on("all", this.handleFileChange);
   }
 
+  public getLoadedControllers(): { [relativePath: string]: typeof Controller } {
+    return this.controllers;
+  }
+
+  public onDidLoadController(listener: () => void): void {
+    this.emitter.on("did-load-controller", listener);
+  }
+
+  public onDidLoadError(listener: (e: Error) => void): void {
+    this.emitter.on("did-load-error", listener);
+  }
+
   private handleFileChange = async (event: HandledEvents, fullPath: string) => {
     const relative = path.relative(this.options.controllerDir, fullPath);
     let controller = this.controllers[relative];
@@ -53,88 +65,20 @@ export default class ControllerLoader {
       const relative = path.relative(this.options.controllerDir, fullPath);
       const oldController = this.controllers[relative];
 
-      let state;
-
       try {
-        if (reload) {
-          state =
-            typeof oldController.__detach === "function"
-              ? oldController.__detach()
-              : null;
-          delete require("module")._cache[fullPath];
-        }
-
         const controller = require(fullPath);
-        this.controllers[relative] = controller
-          ? controller.__esModule
-            ? controller.default || controller
-            : controller
+
+        this.controllers[relative] = controller.__esModule
+          ? controller.default || controller
           : controller;
 
-        if (reload) {
-          if (this.controllers[relative].__attach) {
-            this.controllers[relative].__attach(state);
-          }
-        }
-
-        this._emitter.emit("did-load-controller");
+        this.emitter.emit("did-load-controller");
         resolve(this.controllers[relative]);
       } catch (e) {
         this.controllers[relative] = oldController;
-        this._emitter.emit("did-load-error", e);
+        this.emitter.emit("did-load-error", e);
         reject(e);
       }
     });
   }
-
-  public getLoadedControllers(): { [relativePath: string]: typeof Controller } {
-    return { ...this.controllers };
-  }
-
-  public onDidLoadController(listener: () => void): void {
-    this._emitter.on("did-load-controller", listener);
-  }
-
-  public onDidLoadError(listener: (e: Error) => void): void {
-    this._emitter.on("did-load-error", listener);
-  }
-
-  // /**
-  //  * Get config value
-  //  * @param {String} key
-  //  */
-  // get(key, defaults) {
-  //     return deep.get(this._configs, key, defaults);
-  // }
-
-  // private onFileChanged = _.debounce(path => {
-  //     this.emit('changed')
-  // }, 300)
-
-  // /**
-  //  * @method startWatch
-  //  */
-  // startWatch() {
-  //     chokidar.watch(this.options.configDir).on('all', path => {})
-  //     fs.watch(this.options.configDir, {recursive: true}, (ev, file) => {
-  //         this.logger.info("ConfigLoader", "Reloading config : %s", file);
-  //         this.load();
-  //     });
-  // }
-
-  // /**
-  //  * @method observe
-  //  * @param {String} key
-  //  * @param {Function} listener
-  //  */
-  // observe(key, listener) {
-  //     var oldValue = this.get(key);
-  //     this._emitter.on("reload", () => {
-  //         var newValue = this.get(key);
-
-  //         if (! _.isEqual(newValue, oldValue)) {
-  //             listener(newValue)
-  //         }
-  //     });
-  // }
 }
